@@ -1,5 +1,13 @@
 <?php
 
+/*
+ * Merge the slices of a file together, before initializing the redactor...
+ */
+include 'ChromePhp.php';
+//example for logging: ChromePhp::log('Hello console!');
+
+include 'redactor.php';
+
 session_start();
 
 $id = session_id();
@@ -25,5 +33,8 @@ for($i = 0; $i < $_REQUEST['index']; $i++) {
 
 fclose($dst);
 
-echo $id;
+//initialize the redactor by passing it the filepath to the newly uploaded file
+$redactor = new Redactor($target);
+$_SESSION['redactor'] = $redactor;
+
 ?>
