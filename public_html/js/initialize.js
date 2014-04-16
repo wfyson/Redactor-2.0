@@ -24,6 +24,21 @@ function handleDragOver(evt) {
     evt.dataTransfer.dropEffect = 'copy'; // Explicitly show this is a copy.
 }
 
+function handleUrl(url){    
+    
+    //TODO - check the url is something we allow!!!
+    
+    $.getJSON("../public_html/php/writeUrl.php?callback=?", {doc: url},
+    function(res) {
+        console.log(res);
+    });
+    
+    //display the progress bar and remove the upload interface
+    $('#file_upload').fadeOut("slow");
+    $('#upload_progress').fadeIn("slow");
+    
+}
+
 
 
 

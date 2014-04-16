@@ -3,8 +3,6 @@
 /*
  * Merge the slices of a file together, before initializing the redactor...
  */
-include 'ChromePhp.php';
-//example for logging: ChromePhp::log('Hello console!');
 
 include 'redactor.php';
 

@@ -45,14 +45,20 @@
         <script>
 
             window.onload = function() {
-                // Setup the file input listener
-                var input = document.getElementById('files');
-                input.addEventListener('change', handleFileSelect, false);
+                
+                var doc = '<?php echo $_GET['doc'] ?>';
+                if (doc != ''){
+                    handleUrl(doc);
+                }else{               
+                    // Setup the file input listener
+                    var input = document.getElementById('files');
+                    input.addEventListener('change', handleFileSelect, false);
 
-                // Setup the dnd listeners.
-                var dropZone = document.getElementById('drop_zone');
-                dropZone.addEventListener('dragover', handleDragOver, false);
-                dropZone.addEventListener('drop', handleFileDrop, false);
+                    // Setup the dnd listeners.
+                    var dropZone = document.getElementById('drop_zone');
+                    dropZone.addEventListener('dragover', handleDragOver, false);
+                    dropZone.addEventListener('drop', handleFileDrop, false);
+                }
             };
 
         </script>

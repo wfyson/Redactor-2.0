@@ -23,20 +23,52 @@ interface RedactorImage{
  * that can be sent to the page to render the representation of the document
  */
 class OpenXmlImage implements RedactorImage{
+    
+    private $url;
+    
+    public function __construct(){
         
-}
-
-/*
- * The shared properties of methods of representing an Office Open XML document
- */
-abstract class OpenXmlDocument{
+    }
+    
+    public function generateJSON(){
+        
+    }
     
 }
 
 /*
- * A representationf of a .pptx
+ * The shared properties and methods of representing an Office Open XML document
+ */
+abstract class OpenXmlDocument{
+    
+    protected $filepath;
+    protected $reader;
+    
+    public function __construct($filepath){
+        
+        $this->filepath = $filepath;                
+        
+    }
+        
+}
+
+/*
+ * A representation of a .pptx
  */
 class PowerPoint extends OpenXmlDocument{
+    
+    public function __construct($filepath){
+        
+        parent::__construct($filepath);
+        
+        //create a reader for the powerpoint
+        $this->reader = new PowerPointReader($this->filepath);
+        
+        
+        
+        $this->reader->readImages();
+        
+    }
     
 }
 

@@ -10,62 +10,78 @@
 /*
  * An interface for defining a reader for any file inputs
  */
-interface DocumentReader{
-    
+interface DocumentReader
+{
+
     //get all the images within a document
-    public function getImages();   
-    
+    public function readImages();
 }
 
 /*
  * Common elements that occur for reading any documents using the Office Open XML
  * format are implemented here
  */
-abstract class OpenXmlReader{
 
-    private $file;
-    private $zip;
-    
-    public function __construct($file){
-        
+abstract class OpenXmlReader
+{
+
+    protected $file;
+    protected $zip;
+
+    public function __construct($file)
+    {
         ChromePhp::log("allons-y");
-        
+        ChromePhp::log($file);
+
         $this->file = $file;
-        
         $this->zip = zip_open($file);
-        
-        $zip_entry = zip_read($this->zip);
-        while($zip_entry != false){
-            ChromePhp::log(zip_entry_name($zip_entry));
-            $zip_entry = zip_read($this->zip);
-        }
-        
-        //$zip_entry = zip_read($this->zip);
-        
-        
     }
+
 }
 
 /*
  * A reader for .pptx documents - also needs to read the size of slides so background
  * images can be redacted and captioned appropriately
  */
-class PowerPointReader extends OpenXmlReader{
-    
-    //public function getImages(){
+
+class PowerPointReader extends OpenXmlReader implements DocumentReader
+{
+    //read the images from the powerpoint and write them to the server
+    public function readImages()
+    {
+        //create directory for images
+        $id = session_id();
+        $path = $id . '/images/';
+        if (!file_exists($path)) {
+            mkdir($path, 0777, true);
+        }
         
-    //}
-    
+        $zip_entry = zip_read($this->zip);
+        while ($zip_entry != false)
+        {
+            $entryName = zip_entry_name($zip_entry);
+            if (strpos($entryName, 'ppt/media/') !== FALSE)
+            {
+                $img = zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));                
+                if ($img !== null)
+                {                    
+                        $imagePath = $path . basename($entryName); 
+                        file_put_contents($imagePath, $img);                    
+                }
+            }
+            $zip_entry = zip_read($this->zip);
+        }
+    }
 }
 
 /*
  * A reader for .docx documents - also needs to read the text and heading hierarchy
  * of the document so content between headings can be redacted
  */
-class WordReader extends OpenXmlReader{
+
+class WordReader extends OpenXmlReader
+{
     
 }
-
-
 
 ?>
