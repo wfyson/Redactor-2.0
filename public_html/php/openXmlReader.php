@@ -36,18 +36,9 @@ abstract class OpenXmlReader
         $this->file = $file;
         $this->zip = zip_open($file);
     }
-
-}
-
-/*
- * A reader for .pptx documents - also needs to read the size of slides so background
- * images can be redacted and captioned appropriately
- */
-
-class PowerPointReader extends OpenXmlReader implements DocumentReader
-{
+    
     //read the images from the powerpoint and write them to the server
-    public function readImages()
+    public function readImages($type)
     {
         //create directory for images
         $id = session_id();
@@ -60,7 +51,7 @@ class PowerPointReader extends OpenXmlReader implements DocumentReader
         while ($zip_entry != false)
         {
             $entryName = zip_entry_name($zip_entry);
-            if (strpos($entryName, 'ppt/media/') !== FALSE)
+            if (strpos($entryName, $type . '/media/') !== FALSE)
             {
                 $img = zip_entry_read($zip_entry, zip_entry_filesize($zip_entry));                
                 if ($img !== null)
@@ -72,6 +63,17 @@ class PowerPointReader extends OpenXmlReader implements DocumentReader
             $zip_entry = zip_read($this->zip);
         }
     }
+
+}
+
+/*
+ * A reader for .pptx documents - also needs to read the size of slides so background
+ * images can be redacted and captioned appropriately
+ */
+
+class PowerPointReader extends OpenXmlReader
+{
+    
 }
 
 /*

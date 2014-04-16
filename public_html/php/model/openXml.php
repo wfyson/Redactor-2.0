@@ -62,11 +62,9 @@ class PowerPoint extends OpenXmlDocument{
         parent::__construct($filepath);
         
         //create a reader for the powerpoint
-        $this->reader = new PowerPointReader($this->filepath);
+        $this->reader = new PowerPointReader($this->filepath);                
         
-        
-        
-        $this->reader->readImages();
+        $this->reader->readImages('ppt');
         
     }
     
