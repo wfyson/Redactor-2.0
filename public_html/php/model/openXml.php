@@ -25,7 +25,6 @@ class RedactorImage{
         $this->name = basename($url);
         $this->format = substr($url, strpos($url, '.'));
         
-        ChromePhp::log('Hello there!!!');
         ChromePhp::log($this->name);
         
         $metadataReader = new ExifReader($url);
@@ -52,16 +51,21 @@ abstract class OpenXmlDocument{
     protected $imageLinks;
     protected $redactorImages = array();
     
-    public function __construct($filepath){
+    public function __construct($filepath, $thumbnailLink, $imageLinks){
         
-        $this->filepath = $filepath;                
+        $this->filepath = $filepath; 
         
-    }
-    
-    public function getImageLinks(){
-        return $this->imageLinks;
-    }
+        $this->thumbnailLink = $thumbnailLink;
         
+        $this->imageLinks = $imageLinks;
+        
+        //get redactor images
+        foreach ($this->imageLinks as $url)
+        {
+            //$redactorImage = new RedactorImage($url);
+            //$this->redactorImages[] = $redactorImage;
+        }   
+    }        
 }
 
 /*
@@ -69,24 +73,21 @@ abstract class OpenXmlDocument{
  */
 class PowerPoint extends OpenXmlDocument{
     
-    public function __construct($filepath){
+    private $rels;
+    private $slideHeight;
+    
+    public function __construct($filepath, $thumbnailLink, $imageLinks, $rels, $slideHeight)
+    {       
+        ChromePhp::log($rels);
         
-        parent::__construct($filepath);
+        parent::__construct($filepath, $thumbnailLink, $imageLinks);
         
-        //create a reader for the powerpoint
-        $this->reader = new PowerPointReader($this->filepath);                
+        $this->rels = $rels;
+        $this->slideHeight = $slideHeight;
         
-        //get the thumbnail for the document
-        $this->thumbnailLink = $this->reader->readThumbnail();
         
-        //get the image links
-        $this->imageLinks = $this->reader->readImages('ppt');         
-        foreach ($this->imageLinks as $url)
-        {
-            $redactorImage = new RedactorImage($url);
-            $this->redatorImages[] = $redactorImage;
-        }        
-    }   
+    }        
+        
 }
 
 /*
@@ -96,18 +97,6 @@ class Word extends OpenXmlDocument{
     
 }
 
-/*
- * A PowerPoint document is made up of a number of slides, each of which can
- * posess a number of rels to images.
- */
-class Slide{
-    
-    private $rels = array();
-    
-    public function __construct($rels){
-        $this->rels = $rels;
-    }    
-}
 
 /*
  * Used by pptx's to relate slides to images.
@@ -115,11 +104,13 @@ class Slide{
 class SlideImageRel{
     
     private $relId;
+    private $slideNo;
     private $imageName;
     
-    public function __construct($relId, $imageName){
+    public function __construct($relId, $slideNo, $imageName){
         $this->relId = $relId;
-        $this->imageName = $imageName;
+        $this->slideNo = $slideNo;
+        $this->imageName = $imageName;        
     }
 }
     

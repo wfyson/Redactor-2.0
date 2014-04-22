@@ -27,7 +27,6 @@ function handleDragOver(evt) {
 function handleUrl(url){    
     
     //TODO - check the url is something we allow!!!
-    
     $.getJSON("../public_html/php/writeUrl.php?callback=?", {doc: url},
     function(res) {
         console.log(res);

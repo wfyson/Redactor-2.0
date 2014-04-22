@@ -17,7 +17,8 @@ class Redactor{
     private $filepath;
     private $document; //a representation of the document to be redacted
     
-    public function __construct($filepath){        
+    public function __construct($filepath){    
+        
         $this->filepath = $filepath;
         
         //get the format of the uploaded file
@@ -25,16 +26,19 @@ class Redactor{
         
         switch ($format) {
             case ".pptx":
-                ChromePhp::log('Hello console!');                 
-                $this->document = new PowerPoint($this->filepath);
+                $reader = new PowerPointReader($this->filepath);
+                $powerpoint = $reader->readPowerPoint();
+                
+                //$this->document = new PowerPoint($this->filepath);
             break;
             case ".docx":
-                $this->reader = new WordReader($this->filepath);
+                $reader = new WordReader($this->filepath);
+                $word = $reader->readWord();
             break;
         }         
         
         //construct the representation of the document that has been uploaded
-        $this->init();        
+        //$this->init();        
     }
     
     public function init(){
