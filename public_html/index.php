@@ -47,7 +47,7 @@
             window.onload = function() {
                 
                 var doc = '<?php echo $_GET['doc'] ?>';
-                if (doc != ''){
+                if (doc !== ''){
                     handleUrl(doc);
                 }else{               
                     // Setup the file input listener

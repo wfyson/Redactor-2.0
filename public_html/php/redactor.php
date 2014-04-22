@@ -8,7 +8,9 @@ include 'ChromePhp.php';
 //example for logging: ChromePhp::log('Hello console!');
 
 include 'openXmlReader.php';
+include 'metadataReader.php';
 include 'model/openXml.php';
+
 
 class Redactor{
     
@@ -37,10 +39,10 @@ class Redactor{
     
     public function init(){
         
-        
+        $links = json_encode($this->document->getImageLinks());    
         
         //ping everything back to tjhe main page so the user can start interacting with it
-        echo $_GET['callback'] . '(' . "{'result' : '" . "geronimo" . "'}" . ')';        
+        echo $_GET['callback'] . '(' . "{'result' : '" . $links . "'}" . ')';        
     }
     
 }
