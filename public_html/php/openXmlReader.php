@@ -16,7 +16,6 @@ include 'ChromePhp.php';
  */
 interface DocumentReader
 {
-
     //get all the images within a document
     public function readImages();
 }
@@ -194,9 +193,7 @@ class WordReader extends OpenXmlReader
             if (strpos($entryName, 'word/document.xml') !== FALSE)
             {
                 $this->readText($zipEntry);
-            }
-            
-            
+            }          
             
             $zipEntry = zip_read($this->zip);
         }
@@ -208,51 +205,200 @@ class WordReader extends OpenXmlReader
         $doc = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
         $xml = simplexml_load_string($doc);
         
+        //create a root section
+        $rootPara = new WordText("Root");
+        $root = new WordHeading($rootPara, 0);
+        
         $paras = $xml->xpath('//w:p');
         
         $i = 0;
+        $currentHeading = $root;
         while ($i < count($paras))
         {
+            //ChromePhp::log($i);
+                        
             $para = $paras[$i];
-            
-           $wrArray = $para[0]->xpath('w:r');
-           
-           foreach($wrArray as $wr){
-               $text = $wr[0]->xpath('w:t');           
-               
-               echo $text[0];               
-           }
-           echo '<br><br>';
-           
-           
-            
-            
-            //$this->readPara($para);
-            $i++; 
+
+            $reading = $this->readPara($para, $currentHeading);
+
+            if ($reading->getType() == "heading")
+            {
+                //ChromePhp::log("New Heading!!!");
+                $currentHeading = $reading->getParent();
+                $currentHeading->addPara($reading);
+            } else
+            {
+                //ChromePhp::log("New text stuff!!!");
+                $currentHeading->addPara($reading);
+            }
+            $i++;
         }
-        
-        //$presentation = $xml->xpath('//p:presentation');
-        //$sldSz = $presentation[0]->xpath('p:sldSz');
-       
-        //return (string)$sldSz[0]->attributes()->cy;           
+
+        $root->display();
+        ChromePhp::log("DONE!!!");
+ 
     }
     
-    public function readPara($para)
+    public function readPara($para, $parent)
     {
-        ChromePhp::log($para);
-        
-        $text = $para[0]->xpath('w:t');
-        echo count($text);
-        
-        //$style = $para->xpath('//w:pStyle');
-        
-        echo '<br><br>';
-        
-        
+        //check the style of the para
+        $style = $para[0]->xpath('w:pPr/w:pStyle');           
+        if ($style[0] != null) // a style is present
+        {
+            $val = $style[0]->xpath('@w:val');
+            $styleVal = $val[0];
+            
+            //if the style is a heading            
+            if (strpos($styleVal, 'Heading') === 0) 
+            {
+                //determine heading level
+                $headingLevel = intval(substr($styleVal, 7));
+                
+                //read the text of the para
+                $text = $this->readParaText($para);
+                
+                //ChromePhp::log("heading" . $headingLevel . '...' . $text->getText());
+                
+                //determine the new heading's parent
+                if ($headingLevel > $parent->getLevel())
+                {
+                    //a level deeper
+                    $newParent = $parent;
+                }
+                else
+                {
+                    $difference = $parent->getLevel() - $headingLevel;
+                    $i = 0;
+                    while ($i < $difference)
+                    {
+                        $newParent = $parent->getParent();
+                        $parent = $newParent;
+                        $i++;
+                    }
+                }
+                
+                //create a new heading
+                $heading = new WordHeading($text, $headingLevel, $newParent);
+                return $heading;
+            }
+            
+            //if the stye is a caption
+            //if (strpos($styleVal, "Caption") == 0)
+            //{
+                
+            //}  
+            
+            //style present but we're not interested
+            $text = $this->readParaText($para);
+            //ChromePhp::log($text->getText());
+            return $text;
+        } 
+        else //no style present - so normal text
+        {
+            $text = $this->readParaText($para);
+            //ChromePhp::log($text->getText());
+            return $text;
+        }
+    }
+    
+    public function readParaText($para)
+    {
+        $text = '';
+        $textTags = $para[0]->xpath('w:r/w:t');
+        foreach($textTags as $wt){
+            $text = $text . $wt[0];
+        }
+        $result = new WordText($text);
+        return $result;
     }
 }
 
-$reader = new WordReader('fajllgpnt8bhcv93oqj6nonr73/headings.docx');
+//describes the methods that a readable component of a word document must implement
+interface WordReadable
+{    
+    public function display();
+    
+    public function getType();
+}
+
+class WordText implements WordReadable
+{
+    private $text;
+    
+    public function __construct($text)
+    {
+        $this->text = $text;
+    }
+    
+    public function getText()
+    {
+        return $this->text;
+    }
+    
+    public function display()
+    {
+        echo $this->text;
+    }
+    
+    public function getType()
+    {
+        return "text";
+    }
+}
+
+class WordHeading implements WordReadable
+{
+    private $title;
+    private $level;
+    private $parent;
+    private $paraArray = array();
+    
+    public function __construct($title, $level, $parent=null)
+    {
+        $this->title = $title;
+        $this->level = $level;       
+        $this->parent = $parent;
+    }
+    
+    public function addPara($para)
+    {
+        $this->paraArray[] = $para;
+    }
+    
+    public function getLevel()
+    {
+        return $this->level;
+    }
+    
+    public function getParent()
+    {
+        return $this->parent;
+    }
+    
+    public function display()
+    {
+        echo '<br><br>';
+        
+        $i = $this->level;
+        while ($i > 0)
+        {
+            echo '.........';
+            $i--;
+        }   
+        echo '---';
+        $this->title->display();
+        echo '---<br><br>';        
+        foreach($this->paraArray as $para){
+            $para->display();
+        }
+    }
+    
+    public function getType(){
+        return "heading";
+    }
+}
+
+$reader = new WordReader('4ogefe4nerf4d1137lop1qe1e0/transfer.docx');
 $reader->readWord();
 
 
