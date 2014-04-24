@@ -166,6 +166,8 @@ class PowerPointReader extends OpenXmlReader
  * of the document so content between headings can be redacted
  */
 
+define("XMLNS_PIC", "http://schemas.openxmlformats.org/drawingml/2006/picture");
+
 class WordReader extends OpenXmlReader
 {
     public function readWord()
@@ -189,10 +191,16 @@ class WordReader extends OpenXmlReader
                 $this->thumbnail = $this->readImage($entryName, $zipEntry);
             }
             
+            //for image rels
+            if (strpos($entryName, 'word/_rels/document.xml.rels') !== FALSE)
+            {
+                $this->rels = $this->readRels($zipEntry);
+            }           
+            
             //for document content
             if (strpos($entryName, 'word/document.xml') !== FALSE)
             {
-                $this->readText($zipEntry);
+                $this->document = $this->readText($zipEntry);
             }          
             
             $zipEntry = zip_read($this->zip);
@@ -200,11 +208,24 @@ class WordReader extends OpenXmlReader
     
     }
     
+    /*
+     * Create an associative array to link rel ids to images
+     */    
+    public function readRels($zipEntry)
+    {
+        
+    }
+    
+    /*
+     * Read the text of a Word document creating a hierarchy of headings
+     * Includes reading of images within the text (represented by their relIDs)
+     * and captions.
+     */    
     public function readText($zipEntry)
     {        
         $doc = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
         $xml = simplexml_load_string($doc);
-        
+
         //create a root section
         $rootPara = new WordText("Root");
         $root = new WordHeading($rootPara, 0);
@@ -214,29 +235,25 @@ class WordReader extends OpenXmlReader
         $i = 0;
         $currentHeading = $root;
         while ($i < count($paras))
-        {
-            //ChromePhp::log($i);
-                        
+        {                        
             $para = $paras[$i];
 
             $reading = $this->readPara($para, $currentHeading);
 
             if ($reading->getType() == "heading")
             {
-                //ChromePhp::log("New Heading!!!");
                 $currentHeading = $reading->getParent();
                 $currentHeading->addPara($reading);
             } else
             {
-                //ChromePhp::log("New text stuff!!!");
                 $currentHeading->addPara($reading);
             }
             $i++;
         }
 
-        $root->display();
+        $root->display();        
         ChromePhp::log("DONE!!!");
- 
+        return $root;
     }
     
     public function readPara($para, $parent)
@@ -255,9 +272,7 @@ class WordReader extends OpenXmlReader
                 $headingLevel = intval(substr($styleVal, 7));
                 
                 //read the text of the para
-                $text = $this->readParaText($para);
-                
-                //ChromePhp::log("heading" . $headingLevel . '...' . $text->getText());
+                $text = $this->readParaText($para);                
                 
                 //determine the new heading's parent
                 if ($headingLevel > $parent->getLevel())
@@ -283,22 +298,40 @@ class WordReader extends OpenXmlReader
             }
             
             //if the stye is a caption
-            //if (strpos($styleVal, "Caption") == 0)
-            //{
-                
-            //}  
+            if (strpos($styleVal, "Caption") === 0)
+            {
+                //return a caption thing
+                $text = $this->readParaText($para);
+                $wordCaption = new WordCaption($text);
+                return $wordCaption;
+            }  
             
             //style present but we're not interested
             $text = $this->readParaText($para);
-            //ChromePhp::log($text->getText());
             return $text;
         } 
-        else //no style present - so normal text
-        {
-            $text = $this->readParaText($para);
-            //ChromePhp::log($text->getText());
-            return $text;
+        
+        //check if there is a picture
+        $positioning = $para[0]->xpath('w:r/w:drawing/*');
+        if ($positioning[0] != null){
+            $positioning[0]->registerXPathNamespace('a', 'http://schemas.openxmlformats.org/drawingml/2006/main');
+            $graphicData = $positioning[0]->xpath('a:graphic/a:graphicData');
+            $graphicData[0]->registerXPathNamespace('pic', 'http://schemas.openxmlformats.org/drawingml/2006/picture');
+            $pic = $graphicData[0]->xpath('pic:pic');
+            if ($pic[0] != null) 
+            { 
+                    //get the rel id
+                    $relTag = $pic[0]->xpath('pic:blipFill/a:blip');
+                    $relID = $relTag[0]->xpath('@r:embed');                    
+                    $wordImage = new WordImage($relID[0]);
+                    return $wordImage;                    
+              
+            }
         }
+        
+        //else nothing interesting going on so just read text
+        $text = $this->readParaText($para);
+        return $text;        
     }
     
     public function readParaText($para)
@@ -337,12 +370,57 @@ class WordText implements WordReadable
     
     public function display()
     {
-        echo $this->text;
+        echo '<br>' . $this->text . '<br>';
     }
     
     public function getType()
     {
         return "text";
+    }
+}
+
+class WordImage implements WordReadable
+{
+    private $relID;
+    
+    public function __construct($relID)
+    {
+        $this->relID = $relID;
+    }
+    
+    public function display()
+    {
+        echo '<br><br>---IMAGE...' . $this->relID . '---<br><br>';
+    }
+    
+    public function getType()
+    {
+        return "image";
+    }
+}
+
+class WordCaption implements WordReadable
+{
+    private $text;
+    
+    public function __construct($text)
+    {
+        $this->text = $text;
+    }
+    
+    public function getText()
+    {
+        return $this->text;
+    }
+    
+    public function display()
+    {
+        echo '<b>' . $this->text->getText() . '</b><br><br>';
+    }
+    
+    public function getType()
+    {
+        return "caption";
     }
 }
 
@@ -385,9 +463,7 @@ class WordHeading implements WordReadable
             echo '.........';
             $i--;
         }   
-        echo '---';
-        $this->title->display();
-        echo '---<br><br>';        
+        echo '---' . $this->title->getText() . '---<br><br>';        
         foreach($this->paraArray as $para){
             $para->display();
         }
