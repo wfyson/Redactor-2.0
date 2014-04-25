@@ -7,8 +7,8 @@
  * each would need to return a list of images and associated data with those images as JSON
  */
 
-include 'model/openXml.php';
-include 'ChromePhp.php';
+//include 'model/openXml.php';
+//include 'ChromePhp.php';
 //example for logging: ChromePhp::log('Hello console!');
 
 /*
@@ -73,7 +73,7 @@ define("IMAGE_REL_TYPE", "http://schemas.openxmlformats.org/officeDocument/2006/
 class PowerPointReader extends OpenXmlReader
 {    
     private $relList = array();
-    private $slideSize;
+    private $slideHeight;
     
     public function readPowerPoint()
     {        
@@ -170,6 +170,9 @@ define("XMLNS_PIC", "http://schemas.openxmlformats.org/drawingml/2006/picture");
 
 class WordReader extends OpenXmlReader
 {
+    private $rels;
+    private $document;
+    
     public function readWord()
     {
         $this->zip = zip_open($this->file);        
@@ -194,7 +197,7 @@ class WordReader extends OpenXmlReader
             //for image rels
             if (strpos($entryName, 'word/_rels/document.xml.rels') !== FALSE)
             {
-                $this->rels = $this->readRels($zipEntry);
+                $this->rels = $this->readRels($zipEntry);       
             }           
             
             //for document content
@@ -212,8 +215,24 @@ class WordReader extends OpenXmlReader
      * Create an associative array to link rel ids to images
      */    
     public function readRels($zipEntry)
-    {
+    {        
+        $relList = array();                       
+
+        $rels = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
+        $xml = simplexml_load_string($rels);
         
+        for ($i = 0; $i < $xml->count(); $i++) {
+            $record = $xml->Relationship{$i};
+            $type = $record->attributes()->Type;
+            $cmp = strcmp($type, constant("IMAGE_REL_TYPE"));
+            if ($cmp == 0)
+            {
+                $id = $record->attributes()->Id;
+                $target = basename($record->attributes()->Target);                   
+                $relList[(string)$id] = $target;           
+            }
+        }
+        return $relList;        
     }
     
     /*
@@ -474,8 +493,8 @@ class WordHeading implements WordReadable
     }
 }
 
-$reader = new WordReader('4ogefe4nerf4d1137lop1qe1e0/transfer.docx');
-$reader->readWord();
+//$reader = new WordReader('4ogefe4nerf4d1137lop1qe1e0/transfer.docx');
+//$reader->readWord();
 
 
 ?>

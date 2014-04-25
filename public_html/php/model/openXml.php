@@ -17,6 +17,10 @@ class RedactorImage{
     private $url;
     private $format;
     
+    //metadata
+    private $artist;
+    private $copyright;
+    
     public function __construct($url){
         
         $this->url = $url;
@@ -25,20 +29,27 @@ class RedactorImage{
         $this->name = basename($url);
         $this->format = substr($url, strpos($url, '.'));
         
-        ChromePhp::log($this->name);
-        
+        //check image type here or in the metadata reader? TODO!!        
         $metadataReader = new ExifReader($url);
-        //$metadataReader->readField("artist");      
+        $this->artist = $metadataReader->readField("artist"); 
+        $this->copyright = $metadataReader->readField("copyright"); 
     }
     
-    public function generateJSON(){
+    /*
+     * Generate a JSON object for this image that returns information such as 
+     * a link, licence data and any other metadata we might care to mention...
+     */    
+    public function generateJSONData(){
         
+        $json = array();
+        
+        $json['artist'] = $this->artist;
+        $json['copyright'] = $this->copyright;
+        $json['link'] = $this->url;
+        
+        return $json;
     }
-    
 }
-
-
-
 
 /*
  * The shared properties and methods of representing an Office Open XML document
@@ -62,10 +73,15 @@ abstract class OpenXmlDocument{
         //get redactor images
         foreach ($this->imageLinks as $url)
         {
-            //$redactorImage = new RedactorImage($url);
-            //$this->redactorImages[] = $redactorImage;
+            $redactorImage = new RedactorImage($url);
+            $this->redactorImages[] = $redactorImage;
         }   
-    }        
+    }  
+    
+    public function getFilepath()
+    {
+        return $this->filepath;
+    }
 }
 
 /*
@@ -80,13 +96,37 @@ class PowerPoint extends OpenXmlDocument{
     {       
         ChromePhp::log($rels);
         
-        parent::__construct($filepath, $thumbnailLink, $imageLinks);
+        parent::__construct($filepath, $thumbnailLink, $imageLinks);       
         
         $this->rels = $rels;
         $this->slideHeight = $slideHeight;
-        
-        
     }        
+    
+    public function generateJSON()
+    {
+        $json = array();
+        
+        //type of document
+        $json["type"] = "pptx";
+        
+        //title of presentation
+        $json["title"] = basename($this->filepath);
+        
+        //thumbnail
+        $json["thumbnail"] = $this->thumbnailLink;
+        
+        
+        //image JSON
+        $images = array();
+        foreach($this->redactorImages as $image)
+        {
+            $images[] = $image->generateJSONData();            
+        }
+        
+        $json["images"] = $images;
+        
+        return json_encode($json);
+    }
         
 }
 

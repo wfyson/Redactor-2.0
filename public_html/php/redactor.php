@@ -11,6 +11,8 @@ include 'openXmlReader.php';
 include 'metadataReader.php';
 include 'model/openXml.php';
 
+include 'openXmlWriter.php';
+
 
 class Redactor{
     
@@ -27,9 +29,8 @@ class Redactor{
         switch ($format) {
             case ".pptx":
                 $reader = new PowerPointReader($this->filepath);
-                $powerpoint = $reader->readPowerPoint();
-                
-                //$this->document = new PowerPoint($this->filepath);
+                $powerpoint = $reader->readPowerPoint();                
+                $this->document = $powerpoint;
             break;
             case ".docx":
                 $reader = new WordReader($this->filepath);
@@ -37,16 +38,25 @@ class Redactor{
             break;
         }         
         
+        //test the writer here
+        $writer = new PowerPointWriter($this->document->getFilepath());
+        
+        
+        
         //construct the representation of the document that has been uploaded
-        //$this->init();        
+        $this->init();        
     }
     
     public function init(){
         
-        $links = json_encode($this->document->getImageLinks());    
+        //ChromePhp::log("returning!!!");
+        
+        $json = $this->document->generateJSON();    
+        
+        //ChromePhp::log($json);
         
         //ping everything back to tjhe main page so the user can start interacting with it
-        echo $_GET['callback'] . '(' . "{'result' : '" . $links . "'}" . ')';        
+        echo $_GET['callback'] . '(' . "{'result' : " . $json . "}" . ')';        
     }
     
 }
