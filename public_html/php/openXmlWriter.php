@@ -13,7 +13,8 @@
  */
 interface DocumentWriter
 {
-    
+    //functions for each of the redaction types    
+    public function enactReplaceRedaction();
 }
 
 /*
@@ -55,6 +56,11 @@ abstract class OpenXmlWriter
          * document in a clean, ready to deliver state, we can apply one after 
          * another, providing we source the old stuff from the copy each time...
          * as per Mark's Haskell-y approach
+         * 
+         * With image changes, for each image we need to know what slide it
+         * features on and what it's RelID is for that slide (so basically 
+         * generate an associative array of slides to relIDs - but that is a job
+         * for the PowerPoint object.)
          */
         
         
@@ -93,8 +99,15 @@ abstract class OpenXmlWriter
     
 }
 
-class PowerPointWriter extends OpenXmlWriter
-{
+class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
+{    
+    public function enactReplaceRedaction()
+    {
+        //first replace the image
+        
+        //and then captions where appropriate
+        
+    }
     
     /*
      * Add a caption to slide to attribute an image
@@ -105,8 +118,13 @@ class PowerPointWriter extends OpenXmlWriter
     }   
 }
 
-class WordWriter extends OpenXmlWriter
+class WordWriter extends OpenXmlWriter implements DocumentWriter
 {
+    public function enactReplaceRedaction()
+    {
+        //simply replace the image
+        
+    }
     
     /*
      * Redact headings within the main text of a document

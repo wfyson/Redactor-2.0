@@ -26,8 +26,9 @@ class RedactorImage{
         $this->url = $url;
         
         //get the name and format of the image
-        $this->name = basename($url);
-        $this->format = substr($url, strpos($url, '.'));
+        $split = explode('.', basename($url));
+        $this->name = $split[0];
+        $this->format = $split[1];        
         
         //check image type here or in the metadata reader? TODO!!        
         $metadataReader = new ExifReader($url);
@@ -43,6 +44,7 @@ class RedactorImage{
         
         $json = array();
         
+        $json['name'] = $this->name;
         $json['artist'] = $this->artist;
         $json['copyright'] = $this->copyright;
         $json['link'] = $this->url;
