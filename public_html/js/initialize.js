@@ -29,6 +29,7 @@ function handleUrl(url){
     //TODO - check the url is something we allow!!!
     $.getJSON("../public_html/php/writeUrl.php?callback=?", {doc: url},
     function(res) {
+        console.log("fantastic");
         console.log(res);
     });
     
@@ -131,6 +132,7 @@ function mergeFile(fname) {
 
     $.getJSON("../public_html/php/merge.php?callback=?", {name: fname, index: slices2},
     function(res) {
+        console.log("fantastic");
         console.log(res);
     });
 

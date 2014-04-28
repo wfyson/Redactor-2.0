@@ -39,9 +39,7 @@ class Redactor{
         }         
         
         //test the writer here
-        $writer = new PowerPointWriter($this->document->getFilepath());
-        
-        
+        $writer = new PowerPointWriter($this->document);        
         
         //construct the representation of the document that has been uploaded
         $this->init();        
@@ -49,11 +47,11 @@ class Redactor{
     
     public function init(){
         
-        //ChromePhp::log("returning!!!");
+        ChromePhp::log("returning!!!");
         
         $json = $this->document->generateJSON();    
         
-        //ChromePhp::log($json);
+        ChromePhp::log($json);
         
         //ping everything back to tjhe main page so the user can start interacting with it
         echo $_GET['callback'] . '(' . "{'result' : " . $json . "}" . ')';        

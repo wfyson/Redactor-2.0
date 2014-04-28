@@ -102,7 +102,7 @@ class PowerPoint extends OpenXmlDocument{
         
         $this->rels = $rels;
         $this->slideHeight = $slideHeight;
-    }        
+    }       
     
     public function generateJSON()
     {
@@ -129,6 +129,11 @@ class PowerPoint extends OpenXmlDocument{
         
         return json_encode($json);
     }
+    
+    public function getImageRels($imageName)
+    {
+        return $this->rels[$imageName];
+    }
         
 }
 
@@ -141,19 +146,36 @@ class Word extends OpenXmlDocument{
 
 
 /*
- * Used by pptx's to relate slides to images.
+ * Used to represent an image within a slide
  */
-class SlideImageRel{
+class SlideRel
+{
+    public $relId;
+    public $positions = array();
     
-    private $relId;
-    private $slideNo;
-    private $imageName;
+    public function __construct($relId)
+    {
+        $this->relId = $relId;           
+    }
     
-    public function __construct($relId, $slideNo, $imageName){
-        $this->relId = $relId;
-        $this->slideNo = $slideNo;
-        $this->imageName = $imageName;        
+    public function addPosition($position)
+    {
+        $this->positions[] = $position;
     }
 }
+
+class ImagePosition
+{
+    public $x, $y, $w, $h;
+    
+    public function __construct($x, $y, $w, $h)
+    {
+        $this->x = $x;
+        $this->y = $y;
+        $this->w = $w;
+        $this->h = $h;
+    }
+}
+
     
 ?>

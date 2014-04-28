@@ -13,9 +13,19 @@ class ReplaceRedaction{
                 
     public function __construct($oldImageName, $newImage)
     {
-        $this->oldImageNo = $oldImageName;
+        $this->oldImageName = $oldImageName;
         $this->newImage = $newImage;        
-    }        
+    }
+    
+    public function getOldImageName()
+    {
+        return $this->oldImageName;
+    }
+    
+    public function getNewImage()
+    {
+        return $this->newImage;
+    }
 }
 
 
