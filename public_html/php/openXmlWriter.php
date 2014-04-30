@@ -36,21 +36,17 @@ abstract class OpenXmlWriter
     
     public function __construct($document, $redactions=null)
     {        
-        ChromePhp::log("testing!!");
-        
         $this->id = session_id();
         //$id = 'bimdgfur4gefkdturqm8uvo5m2';
         $this->document = $document;
         //$this->file = $document;
         $this->file = $this->document->getFilepath();        
-        $this->redactions = $redactions;     
+        $this->redactions = $redactions;             
         
         //make a copy of the original file so that we can alter it and send it back with a new name
         $split = explode('.', basename($this->file));        
         $this->newPath = $this->id . '/' . $split[0] . '_redacted.' . $split[1];             
-        copy($this->file, $this->newPath);                
-        
-        ChromePhp::log("ready to start writing!!!"); 
+        copy($this->file, $this->newPath);                            
         
         //now the specific implementations of the class loop through the redactions...
     }
@@ -61,15 +57,20 @@ abstract class OpenXmlWriter
      */    
     public function writeWebImage($webImage, $oldImage)
     {
-        //get new image from its specified location and write to server
-        $tempPath = $this->id . '/' . basename($webImage);
-        copy($webImage, $tempPath);
+        //open the zip archive ready to write
+        //create a zip object
+        $this->zipArchive = new ZipArchive();
+        $this->zipArchive->open($this->newPath);
         
+        //get new image from its specified location and write to server
+        $tempPath = $this->id . '/images/' . basename($webImage);
+        copy($webImage, $tempPath);
         $oldImagePath = 'ppt/media/' . $oldImage;
               
         //simply overwrite the old image with the new one                        
         $this->zipArchive->addFile($tempPath, $oldImagePath);                
         
+        $this->zipArchive->close();        
         /*
          * delete the copy of the new image (but maybe keep it one day if we 
          * want to create a repository of CC images or some such thing)
@@ -121,23 +122,15 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
     
     public function enactReplaceRedaction($replaceRedaction)
     {
-        ChromePhp::log("replace redaction!!!");
-        
-        //open the zip archive ready to write
-        //create a zip object
-        $this->zipArchive = new ZipArchive();
-        if ($this->zipArchive->open($this->newPath) !== TRUE)
-        {
-            die ("Could not open archive");
-        }
-        
         //first replace the image
         $this->writeWebImage($replaceRedaction->newImage, $replaceRedaction->oldImageName);
-                
+                      
         //and then add captions where appropriate...                
         $slideRels = $this->document->getImageRels($replaceRedaction->oldImageName);
         
         //read through the slide files and see if the slide no corresponds with a key in the slideRels array
+        //for each slide that is changed make a record of its name and the new xml
+        $newXml = array();
         $this->zip = zip_open($this->newPath);        
         $zipEntry = zip_read($this->zip);
         while ($zipEntry != false)
@@ -152,14 +145,24 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
                 
                 if (array_key_exists($no, $slideRels))
                 {
-                    ChromePhp::log("reading slide..." . $no);
                     $xml = $this->writeCaption($zipEntry, $slideRels[$no], $replaceRedaction->caption);
-                    $this->zipArchive($entryName, $xml);
+                    $newXml[$entryName] = $xml;
                 }
             }       
             $zipEntry = zip_read($this->zip);
-        }        
-        $this->zipArchive->close();
+        }
+        zip_close($this->zip);
+        
+        //write the changes to the zip archive
+        //open the zip archive ready to write
+        //create a zip object
+        $this->zipArchive = new ZipArchive();
+        $this->zipArchive->open($this->newPath);        
+        foreach($newXml as $entry => $xml)
+        {
+            $this->zipArchive->addFromString($entry, $xml);
+        }
+        $this->zipArchive->close();             
     }
     
     /*

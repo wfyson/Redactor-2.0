@@ -38,11 +38,9 @@ class Redactor{
             break;
         }         
         
-        //test the writer here
-        ChromePhp::log("blah blah");
-        
+        //test the writer here        
         $redactions = array();
-        $redaction = new ReplaceRedaction('image1.jpeg', 'http:\/\/farm1.staticflickr.com\/1\/1106973_8376728259_b.jpg', "testing!!");
+        $redaction = new ReplaceRedaction('image1.jpeg', 'http://farm1.staticflickr.com//1//1106973_8376728259_b.jpg', "testing!!");
         $redactions[] = $redaction;
         $writer = new PowerPointWriter($this->document, $redactions);        
         
@@ -55,8 +53,6 @@ class Redactor{
         ChromePhp::log("returning!!!");
         
         $json = $this->document->generateJSON();    
-        
-        ChromePhp::log($json);
         
         //ping everything back to tjhe main page so the user can start interacting with it
         echo $_GET['callback'] . '(' . "{'result' : " . $json . "}" . ')';        
