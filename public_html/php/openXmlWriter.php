@@ -8,7 +8,7 @@
  * Good overview of reading and creating zips here: http://devzone.zend.com/985/dynamically-creating-compressed-zip-archives-with-php/
  */
 
-include 'ChromePhp.php';
+//include 'ChromePhp.php';
 //example for logging: ChromePhp::log('Hello console!');
 
 /*
@@ -27,63 +27,48 @@ interface DocumentWriter
 
 abstract class OpenXmlWriter
 {
-    protected $file;
+    protected $id;
+    protected $file;    
     protected $document;
-    protected $changes;
-    protected $zipArchive;
+    protected $redactions;
+    protected $newPath;
+    protected $zipArchive; //the zip we open and will make all changes to
     
-    public function __construct($document=null, $changes=null)
+    public function __construct($document, $redactions=null)
     {        
-        $id = session_id();
+        ChromePhp::log("testing!!");
+        
+        $this->id = session_id();
+        //$id = 'bimdgfur4gefkdturqm8uvo5m2';
         $this->document = $document;
-        $this->file = $document;
-        //$this->file = $file = $this->document->getFilepath();        
-        $this->changes = $changes;     
+        //$this->file = $document;
+        $this->file = $this->document->getFilepath();        
+        $this->redactions = $redactions;     
         
         //make a copy of the original file so that we can alter it and send it back with a new name
         $split = explode('.', basename($this->file));        
-        $newPath = $id . '/' . $split[0] . '_redacted.' . $split[1];             
-        copy($this->file, $newPath);
+        $this->newPath = $this->id . '/' . $split[0] . '_redacted.' . $split[1];             
+        copy($this->file, $this->newPath);                
         
-        //create a zip object
-        $this->zipArchive = new ZipArchive();
+        ChromePhp::log("ready to start writing!!!"); 
         
-        //open output file for writing
-        if ($this->zipArchive->open($newPath) !== TRUE)
-        {
-            die ("Could not open archive");
-        }
-        
-        ChromePhp::log("ready to start writing!!!");
-        
-        $this->enactReplaceRedaction($redaction);
-        
-        /*
-         * need to iterate through the changes, but if each change leaves the
-         * document in a clean, ready to deliver state, we can apply one after 
-         * another, providing we source the old stuff from the copy each time...
-         * as per Mark's Haskell-y approach               
-         */                                        
-    }
-    
-    public function writeZip()
-    {
-        $this->zipArchive->close();
+        //now the specific implementations of the class loop through the redactions...
     }
     
     /*
-     * Replaces one image with another
+     * Takes a link to an image online, writes it to the server and then inserts
+     * it into the document
      */    
-    public function writeImage($oldImage, $newImage)
+    public function writeWebImage($webImage, $oldImage)
     {
         //get new image from its specified location and write to server
+        $tempPath = $this->id . '/' . basename($webImage);
+        copy($webImage, $tempPath);
         
+        $oldImagePath = 'ppt/media/' . $oldImage;
               
-        //simply overwrite the old image with the new one
-        $testPath1 = $id . '/images/Penguins.jpg';
-        $testPath2 = 'ppt/media/image2.jpeg';
-                        
-        $zip->addFile($testPath1, $testPath2);                
+        //simply overwrite the old image with the new one                        
+        $this->zipArchive->addFile($tempPath, $oldImagePath);                
         
         /*
          * delete the copy of the new image (but maybe keep it one day if we 
@@ -100,7 +85,7 @@ abstract class OpenXmlWriter
     }
     
     /*
-     * Obscure an image (although may actually want to do this in the JS
+     * Obscure an image (although may actually want to do this in the JS!!)
      */
     public function obscureImage($image)
     {
@@ -111,20 +96,49 @@ abstract class OpenXmlWriter
 
 class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
 {    
+    public function __construct($document, $redactions=null)
+    {   
+        parent::__construct($document, $redactions);
+        
+        //setup complete, loop through the redactions        
+        if ($redactions != null)
+        {
+            foreach($redactions as $redaction)
+            {
+                $type = $redaction->getType();
+                switch($type){
+                    case 'replace':
+                        $this->enactReplaceRedaction($redaction);
+                    break;
+            /*
+             * more to follow here!!
+             */               
+                }
+            }
+        }   
+    }
+    
+    
     public function enactReplaceRedaction($replaceRedaction)
     {
         ChromePhp::log("replace redaction!!!");
         
+        //open the zip archive ready to write
+        //create a zip object
+        $this->zipArchive = new ZipArchive();
+        if ($this->zipArchive->open($this->newPath) !== TRUE)
+        {
+            die ("Could not open archive");
+        }
+        
         //first replace the image
-        
+        $this->writeWebImage($replaceRedaction->newImage, $replaceRedaction->oldImageName);
                 
-        //and then captions where appropriate
-        
-        //test case where image name = "image1.jpeg" but image name would come from the redaction object in reality
-        //$slideRels = $this->document->getImageRels("image3.jpeg");
+        //and then add captions where appropriate...                
+        $slideRels = $this->document->getImageRels($replaceRedaction->oldImageName);
         
         //read through the slide files and see if the slide no corresponds with a key in the slideRels array
-        $this->zip = zip_open($this->file);        
+        $this->zip = zip_open($this->newPath);        
         $zipEntry = zip_read($this->zip);
         while ($zipEntry != false)
         {                       
@@ -136,41 +150,16 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
                 $slideNo = substr($slideFile, 0, strpos($slideFile, '.'));
                 $no = substr($slideNo, 5);   
                 
-                //if (array_key_exists($no, $slideRels))
-                //{
+                if (array_key_exists($no, $slideRels))
+                {
                     ChromePhp::log("reading slide..." . $no);
-                    $this->writeCaption($zipEntry, $slideRels[$no], "test caption");
-                //}
-            }
-            
-            
-            
+                    $xml = $this->writeCaption($zipEntry, $slideRels[$no], $replaceRedaction->caption);
+                    $this->zipArchive($entryName, $xml);
+                }
+            }       
             $zipEntry = zip_read($this->zip);
-        }
-        
-        
-        
-        
-        
-        
-        
-        /*
-         * Can probably write in the nex XML using $zip->addFromString('test.txt', 'file content goes here');
-         * That way we just get a string of xml and write it to the existing file
-         */
-                       
-                
-                
-        /*
-         * With image changes, for each image we need to know what slide it         
-         * features on and what it's RelID is for that slide (so basically 
-         * generate an associative array of slides to relIDs - but that is a job
-         * for the PowerPoint object.)    
-         * 
-         * The powerpoint now has a list of images to slide/rel pairings along with
-         * coordinates for each occurrence     
-         */
-        
+        }        
+        $this->zipArchive->close();
     }
     
     /*
@@ -179,7 +168,6 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
     public function writeCaption($zipEntry, $slideRels, $caption)
     {
         ChromePhp::log("caption writing!!!");
-        
         
         //read the xml        
         $slide = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
@@ -196,10 +184,8 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
             }
         }
         
-        //assume a relId of rId2 (which would normally be acquired via $slideRels->relId;
-        $relId = "rId2";
+        $relId = $slideRels->relId;
         
-        //or doing it with a DOM
         $doc = new DOMDocument();
         $doc->loadXML($slide);
               
@@ -245,7 +231,10 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
                 }
                 ChromePhp::log($doc->saveXML());     
             }
-        }   
+        }
+        
+        //return the amended XML
+        return $doc->saveXML();
     }
     
     public function createCaption($doc, $id, $x, $y, $cx, $cy, $caption)
@@ -363,7 +352,7 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
     }   
 }
 
-$writer = new PowerPointWriter('bimdgfur4gefkdturqm8uvo5m2/test.pptx');
+//$writer = new PowerPointWriter('bimdgfur4gefkdturqm8uvo5m2/test.pptx');
 //$reader->readWord();
 
 ?>

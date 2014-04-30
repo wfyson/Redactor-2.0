@@ -10,8 +10,8 @@ include 'ChromePhp.php';
 include 'openXmlReader.php';
 include 'metadataReader.php';
 include 'model/openXml.php';
-
 include 'openXmlWriter.php';
+include 'redaction.php';
 
 
 class Redactor{
@@ -39,7 +39,12 @@ class Redactor{
         }         
         
         //test the writer here
-        $writer = new PowerPointWriter($this->document);        
+        ChromePhp::log("blah blah");
+        
+        $redactions = array();
+        $redaction = new ReplaceRedaction('image1.jpeg', 'http:\/\/farm1.staticflickr.com\/1\/1106973_8376728259_b.jpg', "testing!!");
+        $redactions[] = $redaction;
+        $writer = new PowerPointWriter($this->document, $redactions);        
         
         //construct the representation of the document that has been uploaded
         $this->init();        
