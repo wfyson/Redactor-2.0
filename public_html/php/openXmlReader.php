@@ -287,7 +287,6 @@ class PowerPointReader extends OpenXmlReader
  * A reader for .docx documents - also needs to read the text and heading hierarchy
  * of the document so content between headings can be redacted
  */
-
 define("XMLNS_PIC", "http://schemas.openxmlformats.org/drawingml/2006/picture");
 
 class WordReader extends OpenXmlReader
@@ -308,13 +307,7 @@ class WordReader extends OpenXmlReader
             if (strpos($entryName, 'word/media/') !== FALSE)
             {                
                 $this->imageLinks[] = $this->readImage($entryName, $zipEntry);
-            }     
-            
-            //for thumbnail file
-            if (strpos($entryName, 'docProps/thumbnail') !== FALSE)
-            {
-                $this->thumbnail = $this->readImage($entryName, $zipEntry);
-            }
+            }                 
             
             //for image rels
             if (strpos($entryName, 'word/_rels/document.xml.rels') !== FALSE)
@@ -330,6 +323,12 @@ class WordReader extends OpenXmlReader
             
             $zipEntry = zip_read($this->zip);
         }
+        
+        //construct and then return a word document - may want to insert a link to a preset thumbnail image
+        $word = new Word($this->file, "n/a",
+                $this->imageLinks, $this->rels, $this->document);
+        
+        return $word;  
     
     }
     
@@ -464,7 +463,7 @@ class WordReader extends OpenXmlReader
                     //get the rel id
                     $relTag = $pic[0]->xpath('pic:blipFill/a:blip');
                     $relID = $relTag[0]->xpath('@r:embed');                    
-                    $wordImage = new WordImage($relID[0]);
+                    $wordImage = new WordImage((string)$relID[0]);
                     return $wordImage;                    
               
             }
@@ -493,6 +492,8 @@ interface WordReadable
     public function display();
     
     public function getType();
+    
+    public function getContent(); //a simple to return representation of the content
 }
 
 class WordText implements WordReadable
@@ -505,18 +506,23 @@ class WordText implements WordReadable
     }
     
     public function getText()
-    {
+    {        
         return $this->text;
     }
     
     public function display()
     {
-        echo '<br>' . $this->text . '<br>';
+        //echo '<br>' . $this->text . '<br>';
     }
     
     public function getType()
     {
         return "text";
+    }
+    
+    public function getContent()
+    {        
+        return $this->text;
     }
 }
 
@@ -531,12 +537,18 @@ class WordImage implements WordReadable
     
     public function display()
     {
-        echo '<br><br>---IMAGE...' . $this->relID . '---<br><br>';
+        //echo '<br><br>---IMAGE...' . $this->relID . '---<br><br>';
     }
     
     public function getType()
     {
         return "image";
+    }
+    
+    public function getContent()
+    {        
+        //return a link ideally...
+        return $this->relID;
     }
 }
 
@@ -556,12 +568,17 @@ class WordCaption implements WordReadable
     
     public function display()
     {
-        echo '<b>' . $this->text->getText() . '</b><br><br>';
+        //echo '<b>' . $this->text->getText() . '</b><br><br>';
     }
     
     public function getType()
     {
         return "caption";
+    }
+    
+    public function getContent()
+    {               
+        return $this->text->getText();
     }
 }
 
@@ -594,8 +611,18 @@ class WordHeading implements WordReadable
         return $this->parent;
     }
     
-    public function display()
+    public function getTitle()
     {
+        return $this->title;
+    }
+    
+    public function getParaArray()
+    {
+        return $this->paraArray;
+    }
+    
+    public function display()
+    {/*
         echo '<br><br>';
         
         $i = $this->level;
@@ -607,15 +634,20 @@ class WordHeading implements WordReadable
         echo '---' . $this->title->getText() . '---<br><br>';        
         foreach($this->paraArray as $para){
             $para->display();
-        }
+        }*/
     }
     
     public function getType(){
         return "heading";
     }
+    
+    public function getContent()
+    {        
+        return $this->title->getText();
+    }
 }
 
-//$reader = new WordReader('4ogefe4nerf4d1137lop1qe1e0/transfer.docx');
+//$reader = new WordReader('sef8v528uqls99rqr6m3i8lu05/transfer.docx');
 //$reader->readWord();
 
 

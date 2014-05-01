@@ -31,9 +31,9 @@ class RedactorImage{
         $this->format = $split[1];        
         
         //check image type here or in the metadata reader? TODO!!        
-        $metadataReader = new ExifReader($url);
-        $this->artist = $metadataReader->readField("artist"); 
-        $this->copyright = $metadataReader->readField("copyright"); 
+        //$metadataReader = new ExifReader($url);
+        //$this->artist = $metadataReader->readField("artist"); 
+        //$this->copyright = $metadataReader->readField("copyright"); 
     }
     
     /*
@@ -140,10 +140,86 @@ class PowerPoint extends OpenXmlDocument{
 /*
  * A representation of a .docx
  */
-class Word extends OpenXmlDocument{
+class Word extends OpenXmlDocument
+{
+    private $document;
+    private $rels;
     
-}
+    public function __construct($filepath, $thumbnailLink, $imageLinks, $rels, $document)
+    {               
+        ChromePhp::log("wizard");
+        
+        parent::__construct($filepath, $thumbnailLink, $imageLinks);       
+        
+        $this->rels = $rels;
+        $this->document = $document;
+    }       
+    
+    public function generateJSON()
+    {
+        ChromePhp::log("generating JSON!!!");
+        
+        $json = array();
+        
+        //type of document
+        $json["type"] = "docx";
+        
+        //title of presentation
+        $json["title"] = basename($this->filepath);
+        
+        //thumbnail
+        $json["thumbnail"] = $this->thumbnailLink;
+        
+        //text
+        $jsonDoc = array();
+        $root = $this->document;
+        $paraArray = $root->getParaArray();
+        foreach($paraArray as $para)
+        {
+            $jsonArray = array();
+            $type = $para->getType();                        
+            $jsonArray["type"] = $type;
+            if ($type == "heading")
+            {
+                $jsonArray["text"] = $para->getContent();
+                $jsonArray["level"] = $para->getLevel(); 
+                $jsonDoc[] = $jsonArray; 
+            }
+            else
+            {
+                if ($type == "image")
+                {
+                    $relId = $para->getContent();
+                    $jsonArray["image"] = $this->rels[$relId];
+                    $jsonDoc[] = $jsonArray;
+                }
+                else
+                {
+                    $jsonArray["text"] = $para->getContent();
+                    $jsonDoc[] = $jsonArray;
+                }
+            }            
+        }
+        $json["doc"] = $jsonDoc;
 
+        //image JSON
+        $images = array();
+        foreach($this->redactorImages as $image)
+        {
+            $images[] = $image->generateJSONData();            
+        }
+        
+        $json["images"] = $images;
+        
+        return json_encode($json);
+    }
+    
+    public function getImageRel($imageName)
+    {
+        $relId = array_search($imageName, $this->rels);
+        return $relId;
+    }
+}
 
 /*
  * Used to represent an image within a slide

@@ -17,7 +17,7 @@ include 'redaction.php';
 class Redactor{
     
     private $filepath;
-    private $document; //a representation of the document to be redacted
+    //private $document; //a representation of the document to be redacted
     
     public function __construct($filepath){    
         
@@ -29,32 +29,33 @@ class Redactor{
         switch ($format) {
             case ".pptx":
                 $reader = new PowerPointReader($this->filepath);
-                $powerpoint = $reader->readPowerPoint();                
-                $this->document = $powerpoint;
+                $doc = $reader->readPowerPoint();
             break;
             case ".docx":
                 $reader = new WordReader($this->filepath);
-                $word = $reader->readWord();
+                $doc = $reader->readWord();
+                //ChromePhp::log($word);
+                //$this->document = $word;
             break;
         }         
         
         //test the writer here        
         $redactions = array();
-        $redaction = new ReplaceRedaction('image1.jpeg', 'http://farm1.staticflickr.com//1//1106973_8376728259_b.jpg', "testing!!");
+        $redaction = new ReplaceRedaction('image6.png', 'http://farm1.staticflickr.com//1//1106973_8376728259_b.jpg', "testing!!");
         $redactions[] = $redaction;
-        $writer = new PowerPointWriter($this->document, $redactions);        
+        $writer = new WordWriter($doc, $redactions);        
         
         //construct the representation of the document that has been uploaded
-        $this->init();        
+        $this->init($doc);        
     }
     
-    public function init(){
+    public function init($doc){
         
         ChromePhp::log("returning!!!");
         
-        $json = $this->document->generateJSON();    
-        
-        //ping everything back to tjhe main page so the user can start interacting with it
+        $json = $doc->generateJSON();    
+        //$json = json_encode("hello");
+        //ping everything back to the main page so the user can start interacting with it
         echo $_GET['callback'] . '(' . "{'result' : " . $json . "}" . ')';        
     }
     

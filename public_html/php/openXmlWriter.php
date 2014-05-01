@@ -4,8 +4,6 @@
  * Writers for various openXml documents - may share some bits, but actually a bit
  * unlikely. Will need to be given a copy of the original file and a list of
  * changes to be implemented 
- * 
- * Good overview of reading and creating zips here: http://devzone.zend.com/985/dynamically-creating-compressed-zip-archives-with-php/
  */
 
 //include 'ChromePhp.php';
@@ -65,12 +63,12 @@ abstract class OpenXmlWriter
         //get new image from its specified location and write to server
         $tempPath = $this->id . '/images/' . basename($webImage);
         copy($webImage, $tempPath);
-        $oldImagePath = 'ppt/media/' . $oldImage;
               
         //simply overwrite the old image with the new one                        
-        $this->zipArchive->addFile($tempPath, $oldImagePath);                
+        $this->zipArchive->addFile($tempPath, $oldImage);                
         
         $this->zipArchive->close();        
+        
         /*
          * delete the copy of the new image (but maybe keep it one day if we 
          * want to create a repository of CC images or some such thing)
@@ -123,7 +121,8 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
     public function enactReplaceRedaction($replaceRedaction)
     {
         //first replace the image
-        $this->writeWebImage($replaceRedaction->newImage, $replaceRedaction->oldImageName);
+        $oldPath = 'ppt/media/' . $replaceRedaction->oldImageName;
+        $this->writeWebImage($replaceRedaction->newImage, $oldPath);
                       
         //and then add captions where appropriate...                
         $slideRels = $this->document->getImageRels($replaceRedaction->oldImageName);
@@ -231,8 +230,7 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
                 else
                 {
                     $tree->appendChild($sp);
-                }
-                ChromePhp::log($doc->saveXML());     
+                }  
             }
         }
         
@@ -240,6 +238,9 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
         return $doc->saveXML();
     }
     
+    /*
+     * Boring XML stuff for actually creating a text box
+     */
     public function createCaption($doc, $id, $x, $y, $cx, $cy, $caption)
     {
         $sp = $doc->createElement('p:sp');
@@ -340,10 +341,131 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
 
 class WordWriter extends OpenXmlWriter implements DocumentWriter
 {
+    public function __construct($document, $redactions=null)
+    {   
+        parent::__construct($document, $redactions);
+        
+        //setup complete, loop through the redactions        
+        if ($redactions != null)
+        {
+            foreach($redactions as $redaction)
+            {
+                $type = $redaction->getType();
+                switch($type){
+                    case 'replace':
+                        $this->enactReplaceRedaction($redaction);
+                    break;
+            /*
+             * more to follow here!!
+             */               
+                }
+            }
+        }   
+    }
+    
+    
     public function enactReplaceRedaction($replaceRedaction)
     {
-        //simply replace the image
+        //first replace the image
+        $oldPath = 'word/media/' . $replaceRedaction->oldImageName;
+        $this->writeWebImage($replaceRedaction->newImage, $oldPath);
         
+        //and write a caption
+        
+        //first get the rel id for the image
+        $relId = $this->document->getImageRel($replaceRedaction->oldImageName);      
+        
+        $this->zip = zip_open($this->newPath);        
+        $zipEntry = zip_read($this->zip);
+        while ($zipEntry != false)
+        {                       
+            $entryName = zip_entry_name($zipEntry);
+            if (strpos($entryName, 'word/document.xml') !== FALSE)
+            {                               
+                $xml = $this->writeCaption($zipEntry, $relId, $replaceRedaction->caption);
+            }
+            
+            $zipEntry = zip_read($this->zip);
+        }        
+        zip_close($this->zip);
+        
+        //write the changes to the zip archive
+        //create, write then save the zip object
+        $this->zipArchive = new ZipArchive();
+        $this->zipArchive->open($this->newPath);  
+        $this->zipArchive->addFromString('word/document.xml', $xml);        
+        $this->zipArchive->close();  
+        
+    }
+    
+    public function writeCaption($zipEntry, $relId, $caption)
+    {
+        ChromePhp::log("caption writing!!!");
+        
+        //read the xml        
+        $doc = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
+        $xml = simplexml_load_string($doc);      
+        
+        //get the maximum value for an id
+        $maxId = 0;
+        $ids = $xml->xpath('//p:cNvPr/@id');
+        foreach($ids as $id)
+        {            
+            if((int)$id > $maxId)
+            {
+                $maxId = (int)$id;
+            }
+        }
+        
+        
+        $dom = new DOMDocument();
+        $dom->loadXML($doc);
+              
+        $xpath = new DOMXPath($doc);
+        $treeQuery = '//p:spTree';
+        $tree = $xpath->query($treeQuery)->item(0);
+        $picQuery = '//p:pic';
+        $pics = $xpath->query($picQuery);
+        foreach($pics as $pic)
+        {          
+            $blipQuery = 'p:blipFill/a:blip/@r:embed';
+            $blip = $xpath->query($blipQuery, $pic)->item(0);
+            if($blip->value == $relId)
+            {
+                $maxId++;
+                
+                //get the position information
+                $offQuery = 'p:spPr/a:xfrm/a:off';                
+                $off = $xpath->query($offQuery, $pic)->item(0);
+                $x = $off->getAttribute('x');
+                $y = $off->getAttribute('y');
+                
+                $extQuery = 'p:spPr/a:xfrm/a:ext';
+                $ext = $xpath->query($extQuery, $pic)->item(0);
+                $cx = $ext->getAttribute('cx');
+                $cy = $ext->getAttribute('cy');
+                
+                //create the text box with caption
+                $sp = $this->createCaption($doc, $maxId, $x, $y, $cx, $cy, $caption);
+                
+                //get sibling
+                $siblingQuery = 'following-sibling::*[1]';
+                $siblings = $xpath->query($siblingQuery, $pic);
+
+                if ($siblings->length > 0)
+                {
+                    $sibling = $siblings->item(0);
+                    $tree->insertBefore($sp, $sibling);
+                }
+                else
+                {
+                    $tree->appendChild($sp);
+                }  
+            }
+        }
+        
+        //return the amended XML
+        return $doc->saveXML();
     }
     
     /*
