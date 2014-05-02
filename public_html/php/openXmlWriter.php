@@ -6,6 +6,7 @@
  * changes to be implemented 
  */
 
+//include 'redaction.php';
 //include 'ChromePhp.php';
 //example for logging: ChromePhp::log('Hello console!');
 
@@ -35,7 +36,7 @@ abstract class OpenXmlWriter
     public function __construct($document, $redactions=null)
     {        
         $this->id = session_id();
-        //$id = 'bimdgfur4gefkdturqm8uvo5m2';
+        //$this->id = 'qk40mfe336c5r0jo4s423nlt62';
         $this->document = $document;
         //$this->file = $document;
         $this->file = $this->document->getFilepath();        
@@ -168,9 +169,7 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
      * Add a caption to slide to attribute an image
      */    
     public function writeCaption($zipEntry, $slideRels, $caption)
-    {
-        ChromePhp::log("caption writing!!!");
-        
+    {  
         //read the xml        
         $slide = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
         $xml = simplexml_load_string($slide);      
@@ -374,7 +373,7 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
         
         //first get the rel id for the image
         $relId = $this->document->getImageRel($replaceRedaction->oldImageName);      
-        
+        //$relId = 'rId5';
         $this->zip = zip_open($this->newPath);        
         $zipEntry = zip_read($this->zip);
         while ($zipEntry != false)
@@ -399,74 +398,84 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
     }
     
     public function writeCaption($zipEntry, $relId, $caption)
-    {
-        ChromePhp::log("caption writing!!!");
-        
+    {        
         //read the xml        
         $doc = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
-        $xml = simplexml_load_string($doc);      
-        
-        //get the maximum value for an id
-        $maxId = 0;
-        $ids = $xml->xpath('//p:cNvPr/@id');
-        foreach($ids as $id)
-        {            
-            if((int)$id > $maxId)
-            {
-                $maxId = (int)$id;
-            }
-        }
-        
-        
+                
         $dom = new DOMDocument();
-        $dom->loadXML($doc);
-              
-        $xpath = new DOMXPath($doc);
-        $treeQuery = '//p:spTree';
-        $tree = $xpath->query($treeQuery)->item(0);
-        $picQuery = '//p:pic';
+        $dom->loadXML($doc);                    
+        
+        $xpath = new DOMXPath($dom);
+        $xpath->registerNamespace('pic', 'http://schemas.openxmlformats.org/drawingml/2006/picture');
+        $picQuery = '//pic:pic';
         $pics = $xpath->query($picQuery);
         foreach($pics as $pic)
         {          
-            $blipQuery = 'p:blipFill/a:blip/@r:embed';
+            $blipQuery = 'pic:blipFill/a:blip/@r:embed';
             $blip = $xpath->query($blipQuery, $pic)->item(0);
             if($blip->value == $relId)
             {
-                $maxId++;
-                
-                //get the position information
-                $offQuery = 'p:spPr/a:xfrm/a:off';                
-                $off = $xpath->query($offQuery, $pic)->item(0);
-                $x = $off->getAttribute('x');
-                $y = $off->getAttribute('y');
-                
-                $extQuery = 'p:spPr/a:xfrm/a:ext';
-                $ext = $xpath->query($extQuery, $pic)->item(0);
-                $cx = $ext->getAttribute('cx');
-                $cy = $ext->getAttribute('cy');
-                
                 //create the text box with caption
-                $sp = $this->createCaption($doc, $maxId, $x, $y, $cx, $cy, $caption);
+                $caption = $this->createCaption($dom, $caption);
                 
+                //get w:r ancestor
+                $wrQuery = 'ancestor::w:r';
+                $wrs = $xpath->query($wrQuery, $pic);
+                $r = $wrs->item(0);
+                
+                //get w:p ancestor
+                $wpQuery = 'ancestor::w:p';
+                $wps = $xpath->query($wpQuery, $pic);
+                $p = $wps->item(0);
+               
                 //get sibling
                 $siblingQuery = 'following-sibling::*[1]';
-                $siblings = $xpath->query($siblingQuery, $pic);
+                $siblings = $xpath->query($siblingQuery, $r);
 
                 if ($siblings->length > 0)
                 {
                     $sibling = $siblings->item(0);
-                    $tree->insertBefore($sp, $sibling);
+                    $p->insertBefore($caption, $sibling);
                 }
                 else
                 {
-                    $tree->appendChild($sp);
-                }  
+                    $p->appendChild($caption);
+                }                 
             }
         }
-        
         //return the amended XML
-        return $doc->saveXML();
+        return $dom->saveXML();
     }
+    
+    /*
+     * Boring XML stuff for actually creating a text box
+     */
+    public function createCaption($doc, $caption)
+    {
+        $r = $doc->createElement('w:r');
+        
+        $rPr = $doc->createElement('w:rPr');
+        
+        $color = $doc->createElement('w:color');
+        $color->setAttribute('w:val', 'auto');
+        
+        $lang = $doc->createElement('w:lang');
+        $lang->setAttribute('w:val', 'en-GB');
+        
+        $rPr->appendChild($color);
+        $rPr->appendChild($lang);
+        
+        $t = $doc->createElement("w:t");
+        $t->setAttribute('xml:space', 'preserve');
+        $t->nodeValue = $caption;
+        
+        $r->appendChild($rPr);
+        $r->appendChild($t);
+        
+        return $r;
+    }
+    
+    
     
     /*
      * Redact headings within the main text of a document
@@ -477,7 +486,10 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
     }   
 }
 
-//$writer = new PowerPointWriter('bimdgfur4gefkdturqm8uvo5m2/test.pptx');
+//$redactions = array();
+//$redaction = new ReplaceRedaction('image1.jpg', 'http://farm1.staticflickr.com//1//1106973_8376728259_b.jpg', "testing!!");
+//$redactions[] = $redaction;
+//$writer = new WordWriter('qk40mfe336c5r0jo4s423nlt62/pictest.docx', $redactions);
 //$reader->readWord();
 
 ?>
