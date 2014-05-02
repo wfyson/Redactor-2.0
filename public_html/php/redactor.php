@@ -41,7 +41,7 @@ class Redactor{
         
         //test the writer here        
         $redactions = array();
-        $redaction = new ReplaceRedaction('image1.jpg', 'http://farm1.staticflickr.com//1//1106973_8376728259_b.jpg', "testing!!");
+        $redaction = new HeadingRedaction(3);
         $redactions[] = $redaction;
         $writer = new WordWriter($doc, $redactions);        
         

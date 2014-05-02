@@ -353,7 +353,11 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
                 switch($type){
                     case 'replace':
                         $this->enactReplaceRedaction($redaction);
-                    break;
+                        break;
+                    case 'heading':
+                        $this->enactHeadingRedaction($redaction);
+                        break;
+                
             /*
              * more to follow here!!
              */               
@@ -361,19 +365,17 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
             }
         }   
     }
-    
-    
+      
     public function enactReplaceRedaction($replaceRedaction)
     {
         //first replace the image
         $oldPath = 'word/media/' . $replaceRedaction->oldImageName;
         $this->writeWebImage($replaceRedaction->newImage, $oldPath);
         
-        //and write a caption
-        
+        //and then write a caption        
         //first get the rel id for the image
-        $relId = $this->document->getImageRel($replaceRedaction->oldImageName);      
-        //$relId = 'rId5';
+        $relId = $this->document->getImageRel($replaceRedaction->oldImageName);             
+        
         $this->zip = zip_open($this->newPath);        
         $zipEntry = zip_read($this->zip);
         while ($zipEntry != false)
@@ -475,21 +477,126 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
         return $r;
     }
     
-    
-    
     /*
      * Redact headings within the main text of a document
      */    
-    public function redactText()
+    public function enactHeadingRedaction($headingRedaction)
     {
-        
+        //need to read through all the paras
+        $this->zip = zip_open($this->newPath);        
+        $zipEntry = zip_read($this->zip);
+        while ($zipEntry != false)
+        {                       
+            $entryName = zip_entry_name($zipEntry);
+            if (strpos($entryName, 'word/document.xml') !== FALSE)
+            {                               
+                $xml = $this->redactHeading($zipEntry, $headingRedaction->headingId);
+            }
+            
+            $zipEntry = zip_read($this->zip);
+        }        
+        zip_close($this->zip);  
+        //write the changes to the zip archive
+        //create, write then save the zip object
+        $this->zipArchive = new ZipArchive();
+        $this->zipArchive->open($this->newPath);  
+        $this->zipArchive->addFromString('word/document.xml', $xml);        
+        $this->zipArchive->close(); 
     }   
+    
+    public function redactHeading($zipEntry, $headingId)
+    {        
+        $currentId = 0;
+        $delete = false;
+        $firstDeletedPara = false;
+        $deleteLevel = -1;
+        
+        //read the xml        
+        $doc = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
+                
+        $dom = new DOMDocument();
+        $dom->loadXML($doc);                    
+                        
+        $xpath = new DOMXPath($dom);
+        $wpQuery = '//w:p';
+        $wps = $xpath->query($wpQuery);
+        foreach($wps as $wp)
+        {    
+            //if the style is a heading            
+            $styleQuery = 'w:pPr/w:pStyle/@w:val';
+            $style = $xpath->query($styleQuery, $wp)->item(0);                       
+            if (strpos($style->value, 'Heading') === 0) 
+            {           
+                $currentId++;
+                
+                //determine heading level
+                $headingLevel = intval(substr($style->value, 7));
+                //reached the next section that hasn't been marked for deletion
+                if ($headingLevel <= $deleteLevel)
+                {
+                    //stop deleting
+                    $delete = false;  
+                }
+                
+                if ($currentId == $headingId)
+                {
+                    //set variables so future wps get deleted
+                    $deleteLevel = $headingLevel;
+                    $delete = true;  
+                    $firstDeletedPara = true;
+                    
+                    //change heading
+                    $wtQuery = 'descendant::w:t[1]';                    
+                    $wtFirst = $xpath->query($wtQuery, $wp)->item(0);               
+                    $wtFirst->nodeValue = "Content Redacted";
+                    $restQuery = 'descendant::w:t[position() > 1]';
+                    $wtRest = $xpath->query($restQuery, $wp);
+                    foreach ($wtRest as $wt)
+                    {
+                        $wt->nodeValue = "";
+                    }
+                }
+            }
+            else
+            {
+                //change text to comment on redaction
+                if ($firstDeletedPara && $delete)
+                {
+                    //change text
+                    $wtQuery = 'descendant::w:t[1]';
+                    $wtFirst = $xpath->query($wtQuery, $wp)->item(0);
+                    $wtFirst->nodeValue = "Content Redacted on " . date("d.m.y");
+
+                    $restQuery = 'descendant::w:t[position() > 1]';
+                    $wtRest = $xpath->query($restQuery, $wp);
+                    foreach ($wtRest as $wt)
+                    {
+                        $wt->nodeValue = "";
+                    }                    
+                    $firstDeletedPara = false;
+                }
+                else
+                {              
+                    //if in delete mode delete the contents of the para
+                    if ($delete)
+                    {
+                        while ($wp->hasChildNodes())
+                        {
+                            $wp->removeChild($wp->firstChild);
+                        }
+                    }
+                }                
+            }                            
+        }
+        //return the amended XML
+        return $dom->saveXML();        
+    }
 }
 
 //$redactions = array();
-//$redaction = new ReplaceRedaction('image1.jpg', 'http://farm1.staticflickr.com//1//1106973_8376728259_b.jpg', "testing!!");
+//$redaction = new HeadingRedaction(4);
 //$redactions[] = $redaction;
-//$writer = new WordWriter('qk40mfe336c5r0jo4s423nlt62/pictest.docx', $redactions);
+//$writer = new WordWriter('qk40mfe336c5r0jo4s423nlt62/transfer.docx', $redactions);
 //$reader->readWord();
 
 ?>

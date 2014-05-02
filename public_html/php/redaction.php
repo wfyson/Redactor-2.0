@@ -57,5 +57,24 @@ class LicenceRedaction implements Redaction
  * Obscure an image in a document. Need to know which image to obscure and a
  * local copy of the obscured image. 
  */
+
+
+/*
+ * Redact a heading and all the content within it. Only available for Word documents
+ */
+class HeadingRedaction implements Redaction
+{
+    public $headingId;
+    
+    public function __construct($id)
+    {
+        $this->headingId = $id;
+    }
+    
+    public function getType()
+    {
+        return 'heading';
+    }    
+}
     
 ?>

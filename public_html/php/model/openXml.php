@@ -181,6 +181,7 @@ class Word extends OpenXmlDocument
             $jsonArray["type"] = $type;
             if ($type == "heading")
             {
+                $jsonArray["id"] = $para->getId();
                 $jsonArray["text"] = $para->getContent();
                 $jsonArray["level"] = $para->getLevel(); 
                 $jsonDoc[] = $jsonArray; 

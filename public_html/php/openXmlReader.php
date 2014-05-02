@@ -366,9 +366,12 @@ class WordReader extends OpenXmlReader
         $doc = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
         $xml = simplexml_load_string($doc);
 
+        $this->headingId = 0;
+        
         //create a root section
         $rootPara = new WordText("Root");
-        $root = new WordHeading($rootPara, 0);
+        $root = new WordHeading($headingId, $rootPara, 0);
+        $this->headingId++;
         
         $paras = $xml->xpath('//w:p');
         
@@ -433,7 +436,8 @@ class WordReader extends OpenXmlReader
                 }
                 
                 //create a new heading
-                $heading = new WordHeading($text, $headingLevel, $newParent);
+                $heading = new WordHeading($this->headingId, $text, $headingLevel, $newParent);
+                $this->headingId++;
                 return $heading;
             }
             
@@ -584,13 +588,15 @@ class WordCaption implements WordReadable
 
 class WordHeading implements WordReadable
 {
+    private $id;
     private $title;
     private $level;
     private $parent;
     private $paraArray = array();
     
-    public function __construct($title, $level, $parent=null)
+    public function __construct($id, $title, $level, $parent=null)
     {
+        $this->id = $id;
         $this->title = $title;
         $this->level = $level;       
         $this->parent = $parent;
@@ -599,6 +605,11 @@ class WordHeading implements WordReadable
     public function addPara($para)
     {
         $this->paraArray[] = $para;
+    }
+    
+    public function getId()
+    {
+        return $this->id;
     }
     
     public function getLevel()
