@@ -8,18 +8,11 @@
  * and the metadata they support
  */
 
-/*
- * An interface for defining a reader for any file inputs
- */
-interface MetadataReader
-{
-    
-}
 
 /*
  * EXIF writer
  */
-class ExifWriter implements MetadataReader{
+class ExifWriter{
     
     private $image;
     private $values;

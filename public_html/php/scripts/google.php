@@ -12,7 +12,7 @@ $params = array(
 	'q'             => 'northern lights', //$_POST['tags']
         'as_rights'     => 'cc_publicdomain', //$_POST['licence']
         'rsz'           => '8', //$_POST['perpage'] //8 is the max I believe
-        'start'          => '1', //$_POST['page']
+        'start'         => '1', //$_POST['page']
 );
 
 $encoded_params = array();

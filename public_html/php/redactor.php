@@ -4,13 +4,23 @@
  * Initialises redactor  
  */
 
-include 'ChromePhp.php';
+include 'debug/ChromePhp.php';
 //example for logging: ChromePhp::log('Hello console!');
 
-include 'openXmlReader.php';
+//openXML
+include 'openXML/openXml.php';
+include 'openXML/openXmlReader.php';
+include 'openXML/powerpointReader.php';
+include 'openXML/wordReader.php';
+include 'openXML/openXmlWriter.php';
+include 'openXML/powerpointWriter.php';
+include 'openXML/wordWriter.php';
+
+//metadata reading and writing
 include 'metadataReader.php';
-include 'model/openXml.php';
-include 'openXmlWriter.php';
+include 'metadataWriter.php';
+
+//redactions
 include 'redaction.php';
 
 
@@ -19,15 +29,13 @@ class Redactor{
     private $filepath;
     //private $document; //a representation of the document to be redacted
     
-    public function __construct($filepath){    
-        
+    public function __construct($filepath){           
         $this->filepath = $filepath;
-        
         //get the format of the uploaded file
-        $format = substr($filepath, strpos($filepath, '.'));                
-        
+        $format = substr(basename($filepath), strpos(basename($filepath), '.'));                
         switch ($format) {
             case ".pptx":
+                
                 $reader = new PowerPointReader($this->filepath);
                 $doc = $reader->readPowerPoint();
             break;

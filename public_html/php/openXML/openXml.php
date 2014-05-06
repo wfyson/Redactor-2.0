@@ -115,7 +115,7 @@ class PowerPoint extends OpenXmlDocument{
         $json["title"] = basename($this->filepath);
         
         //thumbnail
-        $json["thumbnail"] = $this->thumbnailLink;
+        $json["thumbnail"] = substr($this->thumbnailLink, 6);
         
         
         //image JSON

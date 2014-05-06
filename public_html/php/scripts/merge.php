@@ -4,13 +4,13 @@
  * Merge the slices of a file together, before initializing the redactor...
  */
 
-include 'redactor.php';
+include '../redactor.php';
 
 session_start();
 
 $id = session_id();
 
-$path = $id . '/';
+$path = '../../sessions/' . $id . '/';
 
 if(!isset($_REQUEST['name'])) throw new Exception('Name required');
 if(!preg_match('/^[-a-z0-9_][-a-z0-9_.]*$/i', $_REQUEST['name'])) throw new Exception('Name error');

@@ -25,12 +25,11 @@ function handleDragOver(evt) {
 }
 
 function handleUrl(url){    
-    
     //TODO - check the url is something we allow!!!
-    $.getJSON("../public_html/php/writeUrl.php?callback=?", {doc: url},
+    $.getJSON("../public_html/php/scripts/writeUrl.php?callback=?", {doc: url},
     function(res) {
-        console.log("fantastic");
-        console.log(res);
+        console.log("display the document!!");
+        initDisplay(res.result);
     });
     
     //display the progress bar and remove the upload interface
@@ -38,9 +37,6 @@ function handleUrl(url){
     $('#upload_progress').fadeIn("slow");
     
 }
-
-
-
 
 /*
  * Upload file to the server, slicing a large file into slices if necessary
@@ -113,7 +109,7 @@ function uploadFile(blob, index, start, end, fname) {
     fd.append("name", fname);
     fd.append("index", index);
 
-    xhr.open("POST", "../public_html/php/writer.php", true);
+    xhr.open("POST", "../public_html/php/scripts/writer.php", true);
     xhr.send(fd);
 }
 
@@ -130,7 +126,7 @@ function updateProgress(slices, totalSlices) {
 //reconstruct slices into original file
 function mergeFile(fname) {
 
-    $.getJSON("../public_html/php/merge.php?callback=?", {name: fname, index: slices2},
+    $.getJSON("../public_html/php/scripts/merge.php?callback=?", {name: fname, index: slices2},
     function(res) {
         console.log("fantastic");
         console.log(res);

@@ -55,3 +55,21 @@ body{
     
     display: none;
 }
+
+/*
+    The big divs
+*/
+
+#main{
+    display: none;
+}
+
+#view{
+    background: red;
+    height: 80%;
+}
+
+#sidebar{
+    background: blue;
+    height: 80%;
+}

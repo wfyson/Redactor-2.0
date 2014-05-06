@@ -4,7 +4,7 @@ session_start();
 
 $id = session_id();
 
-$path = $id . '/';
+$path = '../../sessions/' . $id . '/';
 
 if (!file_exists($path)) {
     mkdir($path, 0777, true);

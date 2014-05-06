@@ -18,28 +18,46 @@
 
         <!-- Redactor Setup -->
         <script src="js/initialize.js"></script>
+        <script src="js/display.js"></script>
+        
     </head>
 
     <body>
+        <div id="initial">
+            <div id='file_upload'>
+                <div id='file_input'>
+                    <a class='btn btn-primary' href='javascript:;'>
+                        Choose File...
+                        <input id='files' type="file" style='position:absolute;z-index:2;top:0;left:0;filter: alpha(opacity=0);-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";opacity:0;background-color:transparent;color:transparent;' name="file_source" size="40">
+                    </a>
+                </div>
 
-        <div id='file_upload'>
-            <div id='file_input'>
-                <a class='btn btn-primary' href='javascript:;'>
-                    Choose File...
-                    <input id='files' type="file" style='position:absolute;z-index:2;top:0;left:0;filter: alpha(opacity=0);-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";opacity:0;background-color:transparent;color:transparent;' name="file_source" size="40">
-                </a>
+                <h2>Or</h2>
+
+                <div id="drop_zone"><h3>Drop files here</h3></div>
+                <output id="list"></output>
             </div>
 
-            <h2>Or</h2>
-
-            <div id="drop_zone"><h3>Drop files here</h3></div>
-            <output id="list"></output>
+            <div id="upload_progress" class="progress">
+                <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+                    Uploading...
+                </div>
+            </div>
         </div>
-
-        <div id="upload_progress" class="progress">
-            <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
-            Uploading...
+        
+        <div id='main' class='row'>
+            
+            <!-- The current focus of the user's attention -->
+            <div id='view' class='col-md-8'>
+                
             </div>
+            
+            <!--A context sensitive side bar to show controls on the currently
+                selected view -->
+            <div id='sidebar' class='col-md-4'>
+                
+            </div>
+            
         </div>
 
         <script>

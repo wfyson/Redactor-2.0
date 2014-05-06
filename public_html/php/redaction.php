@@ -53,10 +53,25 @@ class LicenceRedaction implements Redaction
     }    
 }
 
+
 /*
  * Obscure an image in a document. Need to know which image to obscure and a
  * local copy of the obscured image. 
  */
+class ObscureRedaction implements Redaction
+{
+    public $imageName;
+    
+    public function __construct($imageName)
+    {
+        $this->imageName = $imageName;
+    }
+    
+    public function getType()
+    {
+        return 'obscure';
+    }    
+}
 
 
 /*
