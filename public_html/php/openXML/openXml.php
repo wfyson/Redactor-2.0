@@ -47,7 +47,7 @@ class RedactorImage{
         $json['name'] = $this->name;
         $json['artist'] = $this->artist;
         $json['copyright'] = $this->copyright;
-        $json['link'] = $this->url;
+        $json['link'] = substr($this->url, 6);
         
         return $json;
     }
