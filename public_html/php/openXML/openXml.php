@@ -31,9 +31,9 @@ class RedactorImage{
         $this->format = $split[1];        
         
         //check image type here or in the metadata reader? TODO!!        
-        //$metadataReader = new ExifReader($url);
-        //$this->artist = $metadataReader->readField("artist"); 
-        //$this->copyright = $metadataReader->readField("copyright"); 
+        $metadataReader = new ExifReader($url);
+        $this->artist = $metadataReader->readField("artist"); 
+        $this->copyright = $metadataReader->readField("copyright"); 
     }
     
     /*

@@ -13,11 +13,13 @@ function initDisplay(document){
     
     //thumbnail
     $thumbnail = $('<img></img>');
+    $thumbnail.addClass('img-thumbnail');
     $thumbnail.attr('src', document.thumbnail);
     $sidebar.append($thumbnail);    
     
     //name of document
-    $name = $('<p></p>');
+    $name = $('<h4></h4>');
+    $name.addClass('doc-title');
     $name.append(document.title);
     $sidebar.append($name);
     
@@ -30,8 +32,10 @@ function initDisplay(document){
     }
     
     
-    //loop through images
-    document.images.forEach(newImage, $view);    
+    //list the images
+    $list = $('<ul></ul>');
+    document.images.forEach(newImage, $list);       
+    $view.append($list);
     
     //show the main view
     $('#main').show();
@@ -49,16 +53,48 @@ function newText(){
 //shows the images within the document so they can be selected for redaction
 function newImage(image){
     
-    $imageBox = $('<div></div>');
-    $imageBox.addClass('image-box');
+    $item = $('<li></li>');
     
+    $imageBox = $('<div></div>');
+    $imageBox.addClass('img-entry');
+    
+    //add class based on licence information
+    $imageBox.addClass('bg-danger');
+    
+    //add the image
+    $imgPrev = $('<div></div>');
+    $imgPrev.addClass('img-preview');
     $img = $('<img></img>');
     $img.attr('src', (image.link));
+    $imgPrev.append($img);
     
-    $imageBox.append($img);
-    $view.append($imageBox);
+    //add the metadata
+    $meta = $('<div></div>');
+    $meta.addClass('meta');
     
-    //add a class based on licence information
+    //name
+    $name = $('<span></span>');
+    $nameLabel = $('<b>Title: </b>');  
+    $name.append($nameLabel).append(image.name);
+    $meta.append($name);
+    
+    //artist
+    $artist = $('<span></span>');
+    $artistLabel = $('<b>Artist: </b>');  
+    $artist.append($artistLabel).append(image.artist);
+    $meta.append($artist);
+    
+    //licence
+    $licence = $('<span></span>');
+    $licenceLabel = $('<b>Licence: </b>');  
+    $licence.append($licenceLabel).append(image.copyright);
+    $meta.append($licence);
+    
+    //construct the entry
+    $imageBox.append($imgPrev);
+    $imageBox.append($meta);    
+    $item.append($imageBox);
+    $list.append($item);
     
     //needs some clicking functionality
     

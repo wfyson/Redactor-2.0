@@ -48,13 +48,13 @@
         <div id='main' class='row'>
             
             <!-- The current focus of the user's attention -->
-            <div id='view' class='col-md-8'>
+            <div id='view' class='col-md-9'>
                 
             </div>
             
             <!--A context sensitive side bar to show controls on the currently
                 selected view -->
-            <div id='sidebar' class='col-md-4'>
+            <div id='sidebar' class='col-md-3'>
                 
             </div>
             

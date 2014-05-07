@@ -7,7 +7,7 @@
 body{
     margin-left: auto;
     margin-right: auto;
-    margin-top: 10%;
+    margin-top: 5%;
     width: 80%;
 }
 
@@ -64,12 +64,71 @@ body{
     display: none;
 }
 
-#view{
-    background: red;
-    height: 80%;
+#view{    
+    padding: 0;
+    
+    overflow: auto;
+}
+
+#view ul{
+    list-style-type: none;
 }
 
 #sidebar{
-    background: blue;
-    height: 80%;
+    height: 500px;
+    
+    background-color: #f7f7f9;
+    
+    border: 1px solid #e1e1e8;
+    border-radius: 4px;
+}
+
+/*
+    Sidebar Content
+*/
+
+.img-thumbnail{
+    margin: 15px 10% 5px 10%;
+    max-width: 80%;
+}
+
+#sidebar h4{
+    text-align: center;
+}
+
+/*
+    Redactable things
+*/
+.text-entry{
+    
+}
+
+.img-entry{
+    width: 100%;
+    margin-top: 5px;
+    margin-bottom: 5px;       
+    
+    cursor: pointer;
+    
+    display: block;
+}
+
+.img-preview{
+    margin: 5px 10px 5px 5px;
+    
+    display: inline-block;
+}
+
+.img-preview img{
+    max-height: 150px;
+    max-width: 200px;
+}
+
+.meta{
+    display: inline-block; 
+    height: 100%;    
+}
+
+.meta span{
+    display: block;
 }
