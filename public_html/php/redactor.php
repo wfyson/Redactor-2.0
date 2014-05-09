@@ -34,8 +34,7 @@ class Redactor{
         //get the format of the uploaded file
         $format = substr(basename($filepath), strpos(basename($filepath), '.'));                
         switch ($format) {
-            case ".pptx":
-                
+            case ".pptx":                
                 $reader = new PowerPointReader($this->filepath);
                 $doc = $reader->readPowerPoint();
             break;
@@ -48,10 +47,10 @@ class Redactor{
         }         
         
         //test the writer here        
-        $redactions = array();
-        $redaction = new HeadingRedaction(3);
-        $redactions[] = $redaction;
-        $writer = new WordWriter($doc, $redactions);        
+        //$redactions = array();
+        //$redaction = new HeadingRedaction(3);
+        //$redactions[] = $redaction;
+        //$writer = new WordWriter($doc, $redactions);        
         
         //construct the representation of the document that has been uploaded
         $this->init($doc);        

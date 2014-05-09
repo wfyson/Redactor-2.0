@@ -98,7 +98,7 @@ class PowerPointReader extends OpenXmlReader
      */
     public function readSlideImageRels($relList, $entryName, $zipEntry)
     {
-        ChromePhp::log("reading slide rels");
+        //ChromePhp::log("reading slide rels");
         
         
         //get the slide number        
@@ -140,7 +140,7 @@ class PowerPointReader extends OpenXmlReader
                 }
             }
         }
-        ChromePhp::log($relList);
+        //ChromePhp::log($relList);
         
         return $relList;
     }

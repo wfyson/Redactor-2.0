@@ -20,6 +20,9 @@
         <script src="js/initialize.js"></script>
         <script src="js/display.js"></script>
         
+        <!-- Text Redaction -->
+        <script src="js/textRedaction.js"></script>
+        
     </head>
 
     <body>
@@ -48,13 +51,13 @@
         <div id='main' class='row'>
             
             <!-- The current focus of the user's attention -->
-            <div id='view' class='col-md-9'>
+            <div id='view' class='col-md-8'>
                 
             </div>
             
             <!--A context sensitive side bar to show controls on the currently
                 selected view -->
-            <div id='sidebar' class='col-md-3'>
+            <div id='sidebar' class='col-md-3 col-md-offset-1'>
                 
             </div>
             

@@ -28,14 +28,12 @@ function handleUrl(url){
     //TODO - check the url is something we allow!!!
     $.getJSON("../public_html/php/scripts/writeUrl.php?callback=?", {doc: url},
     function(res) {
-        console.log("display the document!!");
-        initDisplay(res.result);
+        handleResult(res.result);
     });
     
     //display the progress bar and remove the upload interface
     $('#file_upload').fadeOut("slow");
-    $('#upload_progress').fadeIn("slow");
-    
+    $('#upload_progress').fadeIn("slow");    
 }
 
 /*
@@ -128,8 +126,13 @@ function mergeFile(fname) {
 
     $.getJSON("../public_html/php/scripts/merge.php?callback=?", {name: fname, index: slices2},
     function(res) {
-        console.log("fantastic");
-        console.log(res);
+        handleResult(res.result);
     });
 
+}
+
+//deals with the result of any of the php uploading processes
+function handleResult(document){
+    $('#main').data("doc", document); 
+    initDisplay();
 }

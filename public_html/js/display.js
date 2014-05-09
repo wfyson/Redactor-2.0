@@ -2,19 +2,24 @@
  * Receives a document and displays the content to the user
  * Receives information about the document, plus a list of images
  */
-function initDisplay(document){
-    console.log(document);
+function initDisplay(){
+    //get the document 
+    var document = $('#main').data('doc');
     
     //first hide the file upload stuff
     $('#initial').hide();
     
     //show basic sidebar information for the document
-    $sidebar = $('#sidebar');
-    
+    $sidebar = clearSidebar();
+        
     //thumbnail
     $thumbnail = $('<img></img>');
     $thumbnail.addClass('img-thumbnail');
-    $thumbnail.attr('src', document.thumbnail);
+    if (document.thumbnail === 'n/a'){
+        defaultThumbnail($thumbnail, document.type);
+    }else{
+        $thumbnail.attr('src', document.thumbnail);
+    }
     $sidebar.append($thumbnail);    
     
     //name of document
@@ -24,16 +29,17 @@ function initDisplay(document){
     $sidebar.append($name);
     
     //show the main view
-    $view = $('#view');
+    $view = clearView();
+    
+    //list the redactable elements
+    $list = $('<ul></ul>');
     
     //if a document with text, show the text as the first entry
-    if (document.type == ".docx"){
-        
+    if (document.type === "docx"){
+        newText($list);        
     }
     
-    
-    //list the images
-    $list = $('<ul></ul>');
+    //list the images    
     document.images.forEach(newImage, $list);       
     $view.append($list);
     
@@ -42,12 +48,43 @@ function initDisplay(document){
     
 }
 
+//shows a thumbnail based on doc type
+function defaultThumbnail($thumbnail, type){
+    if(type === "docx"){
+        $thumbnail.attr('src', 'word_thumb.png');
+    }    
+}
+
 //shows a button for redacting text
-function newText(){
+function newText($list){    
+    //a visible button
+    $item = $('<li></li>');
     
-    //a visibile button
+    $textBox = $('<div></div>');
+    $textBox.addClass('entry text-entry bg-info');
     
+    //add an icon
+    $imgPrev = $('<div></div>');
+    $img = $('<img></img>');
+    //$img.attr('src', );
+    $imgPrev.append($img);
+    
+    //label
+    //add the metadata
+    $labelDiv = $('<div></div>');    
+    $label = $('<h4></h4>');
+    $label.append("Redact Text...");
+    $labelDiv.append($label);    
+    
+    //construct the entry
+    $textBox.append($imgPrev).append($labelDiv);
+    $item.append($textBox);
+    $list.append($item);
+        
     //needs some clicking functionality
+    $item.click(function(){
+        showText("wizard");
+    });
 }
 
 //shows the images within the document so they can be selected for redaction
@@ -56,7 +93,7 @@ function newImage(image){
     $item = $('<li></li>');
     
     $imageBox = $('<div></div>');
-    $imageBox.addClass('img-entry');
+    $imageBox.addClass('entry');
     
     //add class based on licence information
     $imageBox.addClass('bg-danger');
@@ -96,7 +133,20 @@ function newImage(image){
     $item.append($imageBox);
     $list.append($item);
     
-    //needs some clicking functionality
-    
-    
+    //needs some clicking functionality        
+}
+
+
+//used to clear the sidebar when we want to put new content on it
+function clearSidebar(){
+     $sidebar = $('#sidebar');
+     $sidebar.empty();
+     return $sidebar;
+}
+
+//used to clear the view when we want to put new content on it
+function clearView(){
+    $view = $('#view');
+    $view.empty(); 
+    return $view;
 }

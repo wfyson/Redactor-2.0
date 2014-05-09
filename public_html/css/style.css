@@ -80,7 +80,7 @@ body{
     background-color: #f7f7f9;
     
     border: 1px solid #e1e1e8;
-    border-radius: 4px;
+    border-radius: 4px;        
 }
 
 /*
@@ -99,11 +99,8 @@ body{
 /*
     Redactable things
 */
-.text-entry{
-    
-}
 
-.img-entry{
+.entry{
     width: 100%;
     margin-top: 5px;
     margin-bottom: 5px;       
@@ -111,6 +108,14 @@ body{
     cursor: pointer;
     
     display: block;
+}
+
+.text-entry{
+    height: 50px;    
+}
+
+.img-entry{
+    
 }
 
 .img-preview{

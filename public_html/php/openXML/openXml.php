@@ -31,9 +31,9 @@ class RedactorImage{
         $this->format = $split[1];        
         
         //check image type here or in the metadata reader? TODO!!        
-        $metadataReader = new ExifReader($url);
-        $this->artist = $metadataReader->readField("artist"); 
-        $this->copyright = $metadataReader->readField("copyright"); 
+        //$metadataReader = new ExifReader($url);
+        //$this->artist = $metadataReader->readField("artist"); 
+        //$this->copyright = $metadataReader->readField("copyright"); 
     }
     
     /*
@@ -96,7 +96,7 @@ class PowerPoint extends OpenXmlDocument{
     
     public function __construct($filepath, $thumbnailLink, $imageLinks, $rels, $slideHeight)
     {       
-        ChromePhp::log($rels);
+        //ChromePhp::log($rels);
         
         parent::__construct($filepath, $thumbnailLink, $imageLinks);       
         
@@ -162,7 +162,7 @@ class Word extends OpenXmlDocument
         $json = array();
         
         //type of document
-        $json["type"] = "docx";
+        $json["type"] = "docx";                
         
         //title of presentation
         $json["title"] = basename($this->filepath);
@@ -171,6 +171,7 @@ class Word extends OpenXmlDocument
         $json["thumbnail"] = $this->thumbnailLink;
         
         //text
+        
         $jsonDoc = array();
         $root = $this->document;
         $paraArray = $root->getParaArray();
@@ -202,7 +203,7 @@ class Word extends OpenXmlDocument
             }            
         }
         $json["doc"] = $jsonDoc;
-
+        
         //image JSON
         $images = array();
         foreach($this->redactorImages as $image)
