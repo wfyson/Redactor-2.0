@@ -85,7 +85,7 @@ class PowerPointReader extends OpenXmlReader
         }          
         
         //construct and then return a powerpoint
-        $powerpoint = new PowerPoint($this->file, $this->thumbnail,
+        $powerpoint = new PowerPoint($this->imagePath, $this->file, $this->thumbnail,
                 $this->imageLinks, $this->relList, $this->slideHeight);
         
         return $powerpoint;        

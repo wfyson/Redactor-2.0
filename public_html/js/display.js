@@ -51,7 +51,7 @@ function initDisplay(){
 //shows a thumbnail based on doc type
 function defaultThumbnail($thumbnail, type){
     if(type === "docx"){
-        $thumbnail.attr('src', 'word_thumb.png');
+        $thumbnail.attr('src', 'img/docx_thumb.png');
     }    
 }
 
@@ -65,14 +65,15 @@ function newText($list){
     
     //add an icon
     $imgPrev = $('<div></div>');
+    $imgPrev.addClass('img-preview');
     $img = $('<img></img>');
-    //$img.attr('src', );
+    $img.attr('src', 'img/text.png');
     $imgPrev.append($img);
     
     //label
-    //add the metadata
     $labelDiv = $('<div></div>');    
-    $label = $('<h4></h4>');
+    $labelDiv.addClass('meta');  
+    $label = $('<h3></h3>');
     $label.append("Redact Text...");
     $labelDiv.append($label);    
     

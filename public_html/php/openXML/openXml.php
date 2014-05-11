@@ -58,13 +58,16 @@ class RedactorImage{
  */
 abstract class OpenXmlDocument{
     
+    protected $localPath;   
     protected $filepath;
     protected $reader;
     protected $thumbnailLink;
     protected $imageLinks;
     protected $redactorImages = array();
     
-    public function __construct($filepath, $thumbnailLink, $imageLinks){
+    public function __construct($localPath, $filepath, $thumbnailLink, $imageLinks){
+        
+        $this->localPath = $localPath;
         
         $this->filepath = $filepath; 
         
@@ -94,11 +97,11 @@ class PowerPoint extends OpenXmlDocument{
     private $rels;
     private $slideHeight;
     
-    public function __construct($filepath, $thumbnailLink, $imageLinks, $rels, $slideHeight)
+    public function __construct($localPath, $filepath, $thumbnailLink, $imageLinks, $rels, $slideHeight)
     {       
         //ChromePhp::log($rels);
         
-        parent::__construct($filepath, $thumbnailLink, $imageLinks);       
+        parent::__construct($localPath, $filepath, $thumbnailLink, $imageLinks);       
         
         $this->rels = $rels;
         $this->slideHeight = $slideHeight;
@@ -116,8 +119,7 @@ class PowerPoint extends OpenXmlDocument{
         
         //thumbnail
         $json["thumbnail"] = substr($this->thumbnailLink, 6);
-        
-        
+                
         //image JSON
         $images = array();
         foreach($this->redactorImages as $image)
@@ -145,11 +147,11 @@ class Word extends OpenXmlDocument
     private $document;
     private $rels;
     
-    public function __construct($filepath, $thumbnailLink, $imageLinks, $rels, $document)
+    public function __construct($localPath, $filepath, $thumbnailLink, $imageLinks, $rels, $document)
     {               
         ChromePhp::log("wizard");
         
-        parent::__construct($filepath, $thumbnailLink, $imageLinks);       
+        parent::__construct($localPath, $filepath, $thumbnailLink, $imageLinks);       
         
         $this->rels = $rels;
         $this->document = $document;
@@ -170,8 +172,7 @@ class Word extends OpenXmlDocument
         //thumbnail
         $json["thumbnail"] = $this->thumbnailLink;
         
-        //text
-        
+        //text        
         $jsonDoc = array();
         $root = $this->document;
         $paraArray = $root->getParaArray();
@@ -193,6 +194,7 @@ class Word extends OpenXmlDocument
                 {
                     $relId = $para->getContent();
                     $jsonArray["image"] = $this->rels[$relId];
+                    $jsonArray["link"] = substr(($this->localPath . $this->rels[$relId]), 6);
                     $jsonDoc[] = $jsonArray;
                 }
                 else

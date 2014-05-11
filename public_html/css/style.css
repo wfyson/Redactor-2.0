@@ -111,7 +111,7 @@ body{
 }
 
 .text-entry{
-    height: 50px;    
+    
 }
 
 .img-entry{
@@ -120,7 +120,7 @@ body{
 
 .img-preview{
     margin: 5px 10px 5px 5px;
-    
+    vertical-align: middle;
     display: inline-block;
 }
 
@@ -130,10 +130,68 @@ body{
 }
 
 .meta{
+    vertical-align: middle;
     display: inline-block; 
     height: 100%;    
 }
 
 .meta span{
     display: block;
+}
+
+/*
+    Text redaction
+*/
+
+.text-view .redact{
+    color:red;
+}
+
+.text-view .check{
+    vertical-align: top;
+    width:5%; 
+    display: inline-block;
+}
+
+.text-view p{    
+    vertical-align: top;
+    width: 95%;
+    display: inline-block;
+    
+    border-left: solid;
+    border-width: thin;
+    padding-left: 5px;
+}
+
+.text-view .heading .check{
+    vertical-align: middle;
+    width:5%; 
+    display: inline-block;
+}
+
+.text-view h1, .text-view h2, .text-view h3, .text-view h4, .text-view h5, .text-view h6{
+    vertical-align: middle;
+    width: 95%;
+    display: inline-block;    
+}
+
+.text-view img{
+    max-width: 100%;
+}
+
+.text-sidebar{
+    position:fixed;
+    overflow:auto;    
+}
+
+.indent-3{
+    margin-left: 15px;
+}
+
+.indent-4{
+    margin-left: 30px;
+}
+
+.indent-5{
+    margin-left: 45px;
 }

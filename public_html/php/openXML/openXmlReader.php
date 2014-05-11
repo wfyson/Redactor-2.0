@@ -23,7 +23,7 @@ interface DocumentReader
 
 abstract class OpenXmlReader
 {
-
+    protected $localPath;
     protected $file;
     protected $zip;
     protected $imageLinks = array();
