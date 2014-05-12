@@ -208,6 +208,11 @@ body{
     border-bottom-style: outset;
 }
 
+.image-sidebar .img-thumbnail{
+    max-width: 50%;
+    margin: 15px 25% 5px 25%;
+}
+
 .img-view img{
     width: 100%;
 }

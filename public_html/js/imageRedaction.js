@@ -30,6 +30,18 @@ function setupSidebar($sidebar, image){
     $thumbnail.attr('src', image.link);
     $sidebar.append($thumbnail);
     
+    $search = setupSearch(image);
+
+    $licence = setupLicence(image);
+    
+    $obscure = setupObscure(image);
+    
+    $sidebar.append($search);
+    $sidebar.append($licence);
+    $sidebar.append($obscure);
+}
+
+function setupSearch(image){
     //image searches
     $search = $('<div></div>');
     $search.addClass('option-div');
@@ -99,7 +111,11 @@ function setupSidebar($sidebar, image){
     $search.append($commercial);
     $search.append($derivative);
     $search.append($group);
+    
+    return $search;
+}
 
+function setupLicence(image){
     //add a licence option
     $licence = $('<div></div>');
     $licence.addClass('option-div');
@@ -113,11 +129,14 @@ function setupSidebar($sidebar, image){
         $option = $('<option></option>');
         $option.append(licences[i]);
         $licenceSelect.append($option);
-    }
-    
+    }    
     $licence.append($licenceHeading);
     $licence.append($licenceSelect);
     
+    return $licence;
+}
+
+function setupObscure(image){
     //obscure the image
     $obscure = $('<div></div>');
     $obscure.addClass('option-div');
@@ -132,12 +151,5 @@ function setupSidebar($sidebar, image){
     $obscure.append($obscureHeading);
     $obscure.append($obscureBtn);
     
-
-    
-    
-    
-    $sidebar.append($search);
-    $sidebar.append($licence);
-    $sidebar.append($obscure);
+    return $obscure;
 }
-
