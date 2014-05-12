@@ -39,19 +39,21 @@ function makeCheckBox($div, $id){
     $check = $('<input>');
     $check.addClass('check');
     $check.attr('type', 'checkbox');
+    $check.attr('data-id', $id);
+    $check.prop("checked", true);
     
     //apply some functionality
     $check.change(function(){        
         if($(this).is(":checked")) {
-            $div.addClass("redact");           
+            $div.removeClass("redact");         
         }else{
-            $div.removeClass("redact");
+            $div.addClass("redact");
         }        
     });
     return $check;    
 }
 
-function addPara(para, $view){   
+function addPara(para, $view){       
     
     if (para.text !== "") {
 
@@ -60,7 +62,7 @@ function addPara(para, $view){
         $para = $('<p></p>');
         $para.append(para.text);
 
-        $check = makeCheckBox($paraDiv);
+        $check = makeCheckBox($paraDiv, para.id);
         $paraDiv.append($check);
         
         $paraDiv.append($para);
@@ -79,7 +81,7 @@ function addHeading(heading, $view, $sidebar){
     $heading.attr('id', heading.id);
     $heading.append(heading.text);  
     
-    $check = makeCheckBox($headingDiv);
+    $check = makeCheckBox($headingDiv, heading.id);
     $headingDiv.append($check);
     
     $headingDiv.append($heading);    
@@ -107,7 +109,7 @@ function addCaption(caption, $view){
     
     $para.append($bold);
     
-    $check = makeCheckBox($captionDiv);
+    $check = makeCheckBox($captionDiv, caption.id);
     $captionDiv.append($check);
     
     $captionDiv.append($para);    
@@ -115,7 +117,7 @@ function addCaption(caption, $view){
 }
 
 function addImage(image, $view){
-    
+        
     $imageDiv = $('<div></div>');    
     $para = $('<p></p>');
 
@@ -124,7 +126,7 @@ function addImage(image, $view){
     
     $para.append($img);
     
-    $check = makeCheckBox($imageDiv);
+    $check = makeCheckBox($imageDiv, image.id);
     $imageDiv.append($check);
     
     $imageDiv.append($para);    

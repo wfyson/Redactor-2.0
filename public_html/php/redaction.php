@@ -77,18 +77,18 @@ class ObscureRedaction implements Redaction
 /*
  * Redact a heading and all the content within it. Only available for Word documents
  */
-class HeadingRedaction implements Redaction
+class ParaRedaction implements Redaction
 {
-    public $headingId;
+    public $id;
     
     public function __construct($id)
     {
-        $this->headingId = $id;
+        $this->id = $id;
     }
     
     public function getType()
     {
-        return 'heading';
+        return 'para';
     }    
 }
     

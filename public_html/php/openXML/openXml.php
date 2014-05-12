@@ -180,7 +180,8 @@ class Word extends OpenXmlDocument
         {
             $jsonArray = array();
             $type = $para->getType();                        
-            $jsonArray["type"] = $type;
+            $jsonArray["id"] = $para->getId();
+            $jsonArray["type"] = $type;            
             if ($type == "heading")
             {
                 $jsonArray["id"] = $para->getId();

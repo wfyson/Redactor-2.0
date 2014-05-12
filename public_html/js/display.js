@@ -10,8 +10,9 @@ function initDisplay(){
     $('#initial').hide();
     
     //show basic sidebar information for the document
-    $sidebar = clearSidebar();
-        
+    //$sidebar = clearSidebar();
+    $sidebar = $('#sidebar');    
+    
     //thumbnail
     $thumbnail = $('<img></img>');
     $thumbnail.addClass('img-thumbnail');
@@ -84,7 +85,7 @@ function newText($list){
         
     //needs some clicking functionality
     $item.click(function(){
-        showText("wizard");
+        showText();
     });
 }
 
@@ -134,13 +135,19 @@ function newImage(image){
     $item.append($imageBox);
     $list.append($item);
     
-    //needs some clicking functionality        
+    //needs some clicking functionality    
+    //needs some clicking functionality
+    $item.click(function(){
+        showImage(image);
+    });
 }
 
 
 //used to clear the sidebar when we want to put new content on it
 function clearSidebar(){
      $sidebar = $('#sidebar');
+     $sidebar.removeClass();
+     $sidebar.addClass('col-md-3 col-md-offset-1');
      $sidebar.empty();
      return $sidebar;
 }
@@ -148,6 +155,8 @@ function clearSidebar(){
 //used to clear the view when we want to put new content on it
 function clearView(){
     $view = $('#view');
+    $view.removeClass();
+    $view.addClass('col-md-8');
     $view.empty(); 
     return $view;
 }

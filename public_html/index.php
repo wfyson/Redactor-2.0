@@ -7,8 +7,8 @@
 
         <!-- CSS -->
         <!-- Bootstrap -->
-        <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-
+        <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">        
+        
         <!-- Page Styling -->
         <link rel="stylesheet" type="text/css" href="css/style.css">
 
@@ -16,12 +16,16 @@
         <!-- JQuery -->
         <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 
+        <!-- Bootstrap -->
+        <script src="js/lib/bootstrap.min.js"></script>
+        
         <!-- Redactor Setup -->
         <script src="js/initialize.js"></script>
         <script src="js/display.js"></script>
         
-        <!-- Text Redaction -->
+        <!-- Redactions -->
         <script src="js/textRedaction.js"></script>
+        <script src="js/imageRedaction.js"></script>
         
     </head>
 
@@ -58,7 +62,7 @@
             <!--A context sensitive side bar to show controls on the currently
                 selected view -->
             <div id='sidebar' class='col-md-3 col-md-offset-1'>
-                
+
             </div>
             
         </div>

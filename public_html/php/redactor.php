@@ -47,10 +47,14 @@ class Redactor{
         }         
         
         //test the writer here        
-        //$redactions = array();
-        //$redaction = new HeadingRedaction(3);
-        //$redactions[] = $redaction;
-        //$writer = new WordWriter($doc, $redactions);        
+        $redactions = array();
+        //$redaction1 = new ParaRedaction(31);
+        //$redaction2 = new ParaRedaction(32);
+        //$redaction3 = new ParaRedaction(77);
+        //$redactions[] = $redaction1;
+        //$redactions[] = $redaction2;
+        //$redactions[] = $redaction3;
+        $writer = new WordWriter($doc, $redactions);        
         
         //construct the representation of the document that has been uploaded
         $this->init($doc);        

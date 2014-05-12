@@ -75,12 +75,14 @@ body{
 }
 
 #sidebar{
-    height: 500px;
+    height: 800px;
     
     background-color: #f7f7f9;
     
     border: 1px solid #e1e1e8;
-    border-radius: 4px;        
+    border-radius: 4px;   
+    
+    overflow: auto;
 }
 
 /*
@@ -111,7 +113,7 @@ body{
 }
 
 .text-entry{
-    
+    padding-left: 20px;
 }
 
 .img-entry{
@@ -142,7 +144,6 @@ body{
 /*
     Text redaction
 */
-
 .text-view .redact{
     color:red;
 }
@@ -194,4 +195,19 @@ body{
 
 .indent-5{
     margin-left: 45px;
+}
+
+/*
+    Image Redaction
+*/
+
+.image-sidebar .option-div{    
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    
+    border-bottom-style: outset;
+}
+
+.img-view img{
+    width: 100%;
 }

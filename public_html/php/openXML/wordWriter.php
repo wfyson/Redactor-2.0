@@ -16,8 +16,8 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
                     case 'replace':
                         $this->enactReplaceRedaction($redaction);
                         break;
-                    case 'heading':
-                        $this->enactHeadingRedaction($redaction);
+                    case 'para':
+                        $this->enactParaRedaction($redaction);
                         break;
                 
             /*
@@ -140,9 +140,9 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
     }
     
     /*
-     * Redact headings within the main text of a document
+     * Redact paragraphs within the main text of a document
      */    
-    public function enactHeadingRedaction($headingRedaction)
+    public function enactParaRedaction($paraRedaction)
     {
         //need to read through all the paras
         $this->zip = zip_open($this->newPath);        
@@ -152,7 +152,7 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
             $entryName = zip_entry_name($zipEntry);
             if (strpos($entryName, 'word/document.xml') !== FALSE)
             {                               
-                $xml = $this->redactHeading($zipEntry, $headingRedaction->headingId);
+                $xml = $this->redactHeading($zipEntry, $paraRedaction->id);
             }
             
             $zipEntry = zip_read($this->zip);
@@ -166,12 +166,9 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
         $this->zipArchive->close(); 
     }   
     
-    public function redactHeading($zipEntry, $headingId)
+    public function redactHeading($zipEntry, $id)
     {        
-        $currentId = 0;
-        $delete = false;
-        $firstDeletedPara = false;
-        $deleteLevel = -1;
+        $currentId = 2;
         
         //read the xml        
         $doc = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
@@ -183,72 +180,110 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
         $wpQuery = '//w:p';
         $wps = $xpath->query($wpQuery);
         foreach($wps as $wp)
-        {    
-            //if the style is a heading            
+        {                
+            //get the style
             $styleQuery = 'w:pPr/w:pStyle/@w:val';
-            $style = $xpath->query($styleQuery, $wp)->item(0);                       
-            if (strpos($style->value, 'Heading') === 0) 
-            {           
-                $currentId++;
-                
-                //determine heading level
-                $headingLevel = intval(substr($style->value, 7));
-                //reached the next section that hasn't been marked for deletion
-                if ($headingLevel <= $deleteLevel)
-                {
-                    //stop deleting
-                    $delete = false;  
-                }
-                
-                if ($currentId == $headingId)
-                {
-                    //set variables so future wps get deleted
-                    $deleteLevel = $headingLevel;
-                    $delete = true;  
-                    $firstDeletedPara = true;
+            $style = $xpath->query($styleQuery, $wp)->item(0); 
+
+            if ($style != null) {
+                //check if header
+                if (strpos($style->value, 'Heading') === 0) {
+                    $currentId++;
                     
-                    //change heading
-                    $wtQuery = 'descendant::w:t[1]';                    
-                    $wtFirst = $xpath->query($wtQuery, $wp)->item(0);               
-                    $wtFirst->nodeValue = "Content Redacted";
-                    $restQuery = 'descendant::w:t[position() > 1]';
-                    $wtRest = $xpath->query($restQuery, $wp);
-                    foreach ($wtRest as $wt)
-                    {
-                        $wt->nodeValue = "";
-                    }
+                    if ($currentId == $id) {
+                        //change heading
+                        $wtQuery = 'descendant::w:t[1]';
+                        $wtFirst = $xpath->query($wtQuery, $wp)->item(0);
+                        $wtFirst->nodeValue = "Heading Redacted";
+                        $restQuery = 'descendant::w:t[position() > 1]';
+                        $wtRest = $xpath->query($restQuery, $wp);
+                        foreach ($wtRest as $wt) {
+                            $wt->nodeValue = "";
+                        }
+                        //return the amended XML
+                        return $dom->saveXML();
+                    }                 
+                    continue;
                 }
-            }
-            else
-            {
-                //change text to comment on redaction
-                if ($firstDeletedPara && $delete)
-                {
-                    //change text
+                
+                //check if caption
+                if (strpos($style->value, 'Caption') === 0) {
+                    $currentId++;
+                    if ($currentId == $id) {
+                        //change caption
+                        $wtQuery = 'descendant::w:t[1]';
+                        $wtFirst = $xpath->query($wtQuery, $wp)->item(0);
+                        $wtFirst->nodeValue = "Caption Redacted";
+                        $restQuery = 'descendant::w:t[position() > 1]';
+                        $wtRest = $xpath->query($restQuery, $wp);
+                        foreach ($wtRest as $wt) {
+                            $wt->nodeValue = "";
+                        }
+                        //return the amended XML
+                        return $dom->saveXML();
+                    }
+                    continue;
+                }
+                
+                //style present but not interested
+                $currentId++;
+                if ($currentId == $id) {
                     $wtQuery = 'descendant::w:t[1]';
                     $wtFirst = $xpath->query($wtQuery, $wp)->item(0);
-                    $wtFirst->nodeValue = "Content Redacted on " . date("d.m.y");
-
+                    $wtFirst->nodeValue = "Paragraph Redacted";
                     $restQuery = 'descendant::w:t[position() > 1]';
                     $wtRest = $xpath->query($restQuery, $wp);
-                    foreach ($wtRest as $wt)
-                    {
+                    foreach ($wtRest as $wt) {
                         $wt->nodeValue = "";
-                    }                    
-                    $firstDeletedPara = false;
-                }
-                else
-                {              
-                    //if in delete mode delete the contents of the para
-                    if ($delete)
-                    {
-                        while ($wp->hasChildNodes())
-                        {
-                            $wp->removeChild($wp->firstChild);
-                        }
                     }
-                }                
-            }                            
+                    //return the amended XML
+                    return $dom->saveXML();
+                }
+                continue;
+            }
+            //no style present
+            //check if there is a picture
+            //get the picture position
+            $positionQuery = 'w:r/w:drawing/*';
+            $position = $xpath->query($positionQuery, $wp)->item(0);
+
+            if ($position != null) {
+                $graphicQuery = 'a:graphic/a:graphicData';
+                $xpath->registerNamespace('a', 'http://schemas.openxmlformats.org/drawingml/2006/main');
+                $graphic = $xpath->query($graphicQuery, $position)->item(0);
+                $picQuery = 'pic:pic';
+                $xpath->registerNamespace('pic', 'http://schemas.openxmlformats.org/drawingml/2006/picture');
+                $pic = $xpath->query($picQuery, $graphic)->item(0);
+                if ($pic != null) {
+                    $currentId++;
+                    if ($currentId == $id) {
+                        /* need to do something more complex here...
+                         * i.e. remove everything image related and add a text
+                         * element
+                         */
+                        //return the amended XML
+                        return $dom->saveXML();
+                    }
+                    continue;
+                }
+            }
+            
+            //nothing of interest so simply deal with the notmal paragraph
+            $currentId++;
+            ChromePhp::log("normal");
+            ChromePhp::log($currentId);
+            if ($currentId == $id) {
+                $wtQuery = 'descendant::w:t[1]';
+                $wtFirst = $xpath->query($wtQuery, $wp)->item(0);
+                $wtFirst->nodeValue = "Paragraph Redacted";
+                $restQuery = 'descendant::w:t[position() > 1]';
+                $wtRest = $xpath->query($restQuery, $wp);
+                foreach ($wtRest as $wt) {
+                    $wt->nodeValue = "";
+                }
+                //return the amended XML
+                return $dom->saveXML();
+            }
         }
         //return the amended XML
         return $dom->saveXML();        

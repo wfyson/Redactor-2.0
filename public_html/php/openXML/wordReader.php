@@ -83,12 +83,13 @@ class WordReader extends OpenXmlReader
         $doc = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
         $xml = simplexml_load_string($doc);
 
-        $this->headingId = 0;
+        $this->id = 0;
         
         //create a root section
-        $rootPara = new WordText("Root");
-        $root = new WordHeading($headingId, $rootPara, 0);
-        $this->headingId++;
+        $rootPara = new WordText($this->id, "Root");
+        $this->id++;
+        $root = new WordHeading($this->id, $rootPara, 0);
+        $this->id++;
         
         $paras = $xml->xpath('//w:p');
         
@@ -111,7 +112,6 @@ class WordReader extends OpenXmlReader
             $i++;
         }
 
-        $root->display();        
         ChromePhp::log("DONE!!!");
         return $root;
     }
@@ -153,8 +153,7 @@ class WordReader extends OpenXmlReader
                 }
                 
                 //create a new heading
-                $heading = new WordHeading($this->headingId, $text, $headingLevel, $newParent);
-                $this->headingId++;
+                $heading = new WordHeading($this->id, $text, $headingLevel, $newParent);
                 return $heading;
             }
             
@@ -163,7 +162,7 @@ class WordReader extends OpenXmlReader
             {
                 //return a caption thing
                 $text = $this->readParaText($para);
-                $wordCaption = new WordCaption($text);
+                $wordCaption = new WordCaption($this->id, $text);
                 return $wordCaption;
             }  
             
@@ -184,7 +183,8 @@ class WordReader extends OpenXmlReader
                     //get the rel id
                     $relTag = $pic[0]->xpath('pic:blipFill/a:blip');
                     $relID = $relTag[0]->xpath('@r:embed');                    
-                    $wordImage = new WordImage((string)$relID[0]);
+                    $wordImage = new WordImage($this->id, (string)$relID[0]);
+                    $this->id++;
                     return $wordImage;                    
               
             }
@@ -202,7 +202,8 @@ class WordReader extends OpenXmlReader
         foreach($textTags as $wt){
             $text = $text . $wt[0];
         }
-        $result = new WordText($text);
+        $this->id++;
+        $result = new WordText($this->id, $text);        
         return $result;
     }
 }
@@ -210,7 +211,7 @@ class WordReader extends OpenXmlReader
 //describes the methods that a readable component of a word document must implement
 interface WordReadable
 {    
-    public function display();
+    public function getId();
     
     public function getType();
     
@@ -219,21 +220,23 @@ interface WordReadable
 
 class WordText implements WordReadable
 {
+    private $id;
     private $text;
-    
-    public function __construct($text)
+        
+    public function __construct($id, $text)
     {
+        $this->id = $id;
         $this->text = $text;
+    }
+    
+    public function getId()
+    {
+        return $this->id;
     }
     
     public function getText()
     {        
         return $this->text;
-    }
-    
-    public function display()
-    {
-        //echo '<br>' . $this->text . '<br>';
     }
     
     public function getType()
@@ -250,15 +253,17 @@ class WordText implements WordReadable
 class WordImage implements WordReadable
 {
     private $relID;
+    private $id;
     
-    public function __construct($relID)
+    public function __construct($id, $relID)
     {
+        $this->id = $id;
         $this->relID = $relID;
     }
     
-    public function display()
+    public function getId()
     {
-        //echo '<br><br>---IMAGE...' . $this->relID . '---<br><br>';
+        return $this->id;
     }
     
     public function getType()
@@ -276,21 +281,23 @@ class WordImage implements WordReadable
 class WordCaption implements WordReadable
 {
     private $text;
+    private $id;
     
-    public function __construct($text)
+    public function __construct($id, $text)
     {
+        $this->id = $id;
         $this->text = $text;
+    }
+    
+    public function getId()
+    {
+        return $this->id;
     }
     
     public function getText()
     {
         return $this->text;
-    }
-    
-    public function display()
-    {
-        //echo '<b>' . $this->text->getText() . '</b><br><br>';
-    }
+    }    
     
     public function getType()
     {
@@ -347,23 +354,7 @@ class WordHeading implements WordReadable
     public function getParaArray()
     {
         return $this->paraArray;
-    }
-    
-    public function display()
-    {/*
-        echo '<br><br>';
-        
-        $i = $this->level;
-        while ($i > 0)
-        {
-            echo '.........';
-            $i--;
-        }   
-        echo '---' . $this->title->getText() . '---<br><br>';        
-        foreach($this->paraArray as $para){
-            $para->display();
-        }*/
-    }
+    }    
     
     public function getType(){
         return "heading";
