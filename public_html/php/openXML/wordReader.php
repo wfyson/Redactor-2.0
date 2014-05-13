@@ -182,9 +182,9 @@ class WordReader extends OpenXmlReader
             { 
                     //get the rel id
                     $relTag = $pic[0]->xpath('pic:blipFill/a:blip');
-                    $relID = $relTag[0]->xpath('@r:embed');                    
-                    $wordImage = new WordImage($this->id, (string)$relID[0]);
+                    $relID = $relTag[0]->xpath('@r:embed');  
                     $this->id++;
+                    $wordImage = new WordImage($this->id, (string)$relID[0]);                    
                     return $wordImage;                    
               
             }

@@ -152,7 +152,7 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
             $entryName = zip_entry_name($zipEntry);
             if (strpos($entryName, 'word/document.xml') !== FALSE)
             {                               
-                $xml = $this->redactHeading($zipEntry, $paraRedaction->id);
+                $xml = $this->redactPara($zipEntry, $paraRedaction->id);
             }
             
             $zipEntry = zip_read($this->zip);
@@ -166,7 +166,7 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
         $this->zipArchive->close(); 
     }   
     
-    public function redactHeading($zipEntry, $id)
+    public function redactPara($zipEntry, $id)
     {        
         $currentId = 2;
         
@@ -180,7 +180,7 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
         $wpQuery = '//w:p';
         $wps = $xpath->query($wpQuery);
         foreach($wps as $wp)
-        {                
+        {      
             //get the style
             $styleQuery = 'w:pPr/w:pStyle/@w:val';
             $style = $xpath->query($styleQuery, $wp)->item(0); 
@@ -241,6 +241,7 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
                 }
                 continue;
             }
+            
             //no style present
             //check if there is a picture
             //get the picture position
@@ -255,12 +256,18 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
                 $xpath->registerNamespace('pic', 'http://schemas.openxmlformats.org/drawingml/2006/picture');
                 $pic = $xpath->query($picQuery, $graphic)->item(0);
                 if ($pic != null) {
-                    $currentId++;
+                    $currentId++;                    
                     if ($currentId == $id) {
-                        /* need to do something more complex here...
-                         * i.e. remove everything image related and add a text
-                         * element
-                         */
+                        //first remove all children
+                        while ($wp->hasChildNodes())
+                        {
+                            $wp->removeChild($wp->firstChild);                                                                                
+                        }
+                        
+                        //add image redacted text
+                        $new = $this->createCaption($dom, "Image Redacted");                            
+                        $wp->appendChild($new);    
+
                         //return the amended XML
                         return $dom->saveXML();
                     }

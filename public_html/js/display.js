@@ -4,14 +4,44 @@
  */
 function initDisplay(){
     //get the document 
-    var document = $('#main').data('doc');
+    var document = $('#main').data('doc');   
+    
+    //get the redactions
+    var redactions = $('#main').data('redactions');
     
     //first hide the file upload stuff
     $('#initial').hide();
     
+    //show the banner controls
+    $banner = clearBanner();
+    $redactBtn = $('<button></button>');
+    $redactBtn.addClass('btn btn-default');
+    $redactBtn.append("Redact");
+    
+    //disable button if no redactions
+    if (redactions.length === 0){
+        $redactBtn.addClass("disabled");        
+    }
+
+    $redactBtn.click(function(){
+       commitRedactions(); 
+    });
+    
+    $banner.append($redactBtn);
+    
+    //overview of redactions
+    $overview = $('<h3></h3>');
+    $overview.attr('id', 'overview');
+    var redactText = " Redactions";
+    if (redactions.length === 1)
+        redactText = " Redaction";    
+    var overview = redactions.length + redactText;       
+    $overview.append(overview);    
+    $banner.append($overview);
+    
     //show basic sidebar information for the document
-    //$sidebar = clearSidebar();
-    $sidebar = $('#sidebar');    
+    $sidebar = clearSidebar();
+    //$sidebar = $('#sidebar');    
     
     //thumbnail
     $thumbnail = $('<img></img>');
@@ -143,6 +173,15 @@ function newImage(image){
 }
 
 
+//used to clear the banner when we want to put new content on it
+function clearBanner(){
+     $banner = $('#banner');
+     $banner.removeClass();
+     $banner.addClass('col-md-8');
+     $banner.empty();
+     return $banner;
+}
+
 //used to clear the sidebar when we want to put new content on it
 function clearSidebar(){
      $sidebar = $('#sidebar');
@@ -159,4 +198,19 @@ function clearView(){
     $view.addClass('col-md-8');
     $view.empty(); 
     return $view;
+}
+
+//ask the server to commit the redactions and present a link
+function commitRedactions(){
+    $.getJSON("../public_html/php/scripts/commit.php?callback=?",
+    function(res) {
+        $overview = $('#overview');
+        $overview.empty();
+        
+        $link = $('<a></a>');
+        $link.attr('href', res);
+        $link.append("Click to download...");
+
+        $overview.append($link);
+    });
 }

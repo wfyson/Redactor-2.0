@@ -17,6 +17,7 @@ interface DocumentWriter
 {
     //functions for each of the redaction types    
     public function enactReplaceRedaction($replaceRedaction);
+
 }
 
 /*
@@ -47,7 +48,12 @@ abstract class OpenXmlWriter
         $this->newPath = '../../sessions/' . $this->id . '/' . $split[0] . '_redacted.' . $split[1];             
         copy($this->file, $this->newPath);                            
         
-        //now the specific implementations of the class loop through the redactions...
+        //now the specific implementations of the class loop through the redactions... (see the non-abstract classes)
+    }
+    
+    public function returnDownloadLink()
+    {
+        return $this->newPath;
     }
     
     /*

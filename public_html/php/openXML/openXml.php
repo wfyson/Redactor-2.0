@@ -129,7 +129,7 @@ class PowerPoint extends OpenXmlDocument{
         
         $json["images"] = $images;
         
-        return json_encode($json);
+        return $json;
     }
     
     public function getImageRels($imageName)
@@ -216,7 +216,7 @@ class Word extends OpenXmlDocument
         
         $json["images"] = $images;
         
-        return json_encode($json);
+        return $json;
     }
     
     public function getImageRel($imageName)

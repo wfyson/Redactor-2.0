@@ -2,8 +2,28 @@
 //show the document's text content ready for redaction
 function showText(){    
     
+    //get the document 
     var document = $('#main').data('doc');
     var text = document.doc;
+    
+    //get the redactions
+    var redactions = $('#main').data('redactions');
+    
+    //add a back button
+    $banner = clearBanner();
+    $backBtn = $('<button></button>');
+    $backBtn.addClass('btn btn-default');
+    $backBtn.append("Save and Return");
+    $backBtn.click(function(){
+       saveRedactions(); 
+    });        
+    $banner.append($backBtn);
+    
+    //add overview
+    $overview = $('<h3></h3>');
+    $overview.attr('id', 'text-overview');
+    $banner.append($overview);
+    
     
     //update the sidebar to display navigable contents
     $sidebar = clearSidebar();
@@ -29,26 +49,40 @@ function showText(){
                 addImage(text[i], $view);
                 break;
         }
-    }        
+    }      
+    
+    //apply any redactions which may be present already
+    for (i = 0; i < redactions.length; i++){
+        var redaction = redactions[i];
+       
+        if(redaction.type === "para"){
+            $checkbox = $('#check-' + redaction.value);
+            $checkbox.click();
+        } 
+    }
+    updateTextRedactions();
+    
 }
 
 //takes an id so later we can see which paragraphs have been chosen for redaction
-function makeCheckBox($div, $id){
+function makeCheckBox($div, id){
     
     //make a check box
     $check = $('<input>');
     $check.addClass('check');
+    $check.attr('id', 'check-' + id);
     $check.attr('type', 'checkbox');
-    $check.attr('data-id', $id);
+    $check.attr('data-id', id);
     $check.prop("checked", true);
     
     //apply some functionality
-    $check.change(function(){        
+    $check.change(function(){    
         if($(this).is(":checked")) {
             $div.removeClass("redact");         
         }else{
             $div.addClass("redact");
         }        
+        updateTextRedactions();
     });
     return $check;    
 }
@@ -116,7 +150,7 @@ function addCaption(caption, $view){
     $view.append($captionDiv);    
 }
 
-function addImage(image, $view){
+function addImage(image, $view){        
         
     $imageDiv = $('<div></div>');    
     $para = $('<p></p>');
@@ -133,4 +167,40 @@ function addImage(image, $view){
     $view.append($imageDiv); 
 }
 
+/*
+ * get all the check boxes which have been clicked and for eachget the id to
+ * create a new paraRedaction in the PHP side of things
+ */ 
+function saveRedactions(){
+    
+    //get the unticked boxes
+    $checked = $('.redact .check');    
+    
+    //get a list  of the selected paras
+    var redactIds = new Array();
+    $checked.each(function(){
+       redactIds.push($(this).data('id'));
+    });
+    
+    //ping list off the server
+    $.getJSON("../public_html/php/inputs/paraRedaction.php?callback=?", {ids: redactIds},
+    function(res) {
+        handleResult(res[0], res[1]);
+    });
+}
 
+function updateTextRedactions(){
+    
+    $checkboxes = $('.check');
+    $checked = $('.redact .check');
+    
+    var percentage = (($checked.length / $checkboxes.length) * 100).toFixed(2);
+    
+    var redactText = " Redactions (";
+    if ($checked.length === 1)
+        redactText = " Redaction (";
+    
+    var overview = $checked.length + redactText + percentage + "%)";   
+    $('#text-overview').empty();    
+    $('#text-overview').append(overview);
+}

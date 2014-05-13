@@ -64,6 +64,19 @@ body{
     display: none;
 }
 
+#banner{
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    
+    border-bottom-style: outset;
+}
+
+#banner h3{
+    margin-left: 20px;
+    vertical-align: middle;
+    display: inline;
+}
+
 #view{    
     padding: 0;
     
@@ -144,6 +157,7 @@ body{
 /*
     Text redaction
 */
+
 .text-view .redact{
     color:red;
 }

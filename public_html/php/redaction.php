@@ -7,6 +7,8 @@
 interface Redaction
 {
     public function getType();
+    
+    public function generateJSON();
 }
 
 /*
@@ -30,6 +32,10 @@ class ReplaceRedaction implements Redaction
     {
         return 'replace';
     }
+    
+    public function generateJSON(){                
+        
+    }
 }
 
 /*
@@ -50,7 +56,11 @@ class LicenceRedaction implements Redaction
     public function getType()
     {
         return 'licence';
-    }    
+    }   
+    
+    public function generateJSON(){
+        
+    }
 }
 
 
@@ -70,7 +80,11 @@ class ObscureRedaction implements Redaction
     public function getType()
     {
         return 'obscure';
-    }    
+    }   
+    
+    public function generateJSON(){
+        
+    }
 }
 
 
@@ -90,6 +104,15 @@ class ParaRedaction implements Redaction
     {
         return 'para';
     }    
+    
+    public function generateJSON(){        
+        $json = array();
+        
+        $json['type'] = 'para';
+        $json['value'] = $this->id;
+        
+        return $json;
+    }
 }
     
 ?>

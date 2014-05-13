@@ -28,7 +28,7 @@ function handleUrl(url){
     //TODO - check the url is something we allow!!!
     $.getJSON("../public_html/php/scripts/writeUrl.php?callback=?", {doc: url},
     function(res) {
-        handleResult(res.result);
+        handleResult(res[0], res[1]);
     });
     
     //display the progress bar and remove the upload interface
@@ -125,14 +125,15 @@ function updateProgress(slices, totalSlices) {
 function mergeFile(fname) {
 
     $.getJSON("../public_html/php/scripts/merge.php?callback=?", {name: fname, index: slices2},
-    function(res) {
-        handleResult(res.result);
+    function(res) {        
+        handleResult(res[0], res[1]);
     });
 
 }
 
 //deals with the result of any of the php uploading processes
-function handleResult(document){
+function handleResult(document, redactions){
     $('#main').data("doc", document); 
+    $('#main').data("redactions", redactions);
     initDisplay();
 }

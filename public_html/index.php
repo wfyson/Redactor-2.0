@@ -54,6 +54,11 @@
         
         <div id='main' class='row'>
             
+            <!-- BAnner controls -->
+            <div id='banner' class="col-md-8">
+                
+            </div>
+            
             <!-- The current focus of the user's attention -->
             <div id='view' class='col-md-8'>
                 

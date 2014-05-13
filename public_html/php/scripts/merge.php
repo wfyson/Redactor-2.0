@@ -33,6 +33,5 @@ fclose($dst);
 
 //initialize the redactor by passing it the filepath to the newly uploaded file
 $redactor = new Redactor($target);
-$_SESSION['redactor'] = $redactor;
 
 ?>
