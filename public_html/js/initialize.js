@@ -4,8 +4,10 @@
 
 function handleFileSelect(evt) {
     var files = evt.target.files; // FileList object
-    for (var i = 0, f; f = files[i]; i++) {
-        sendRequest(f, f.name);
+    for (var i = 0, f; f = files[i]; i++) {        
+        var name = f.name;
+        var newName = name.split(' ').join('_');        
+        sendRequest(f, newName);
     }
   }
 
@@ -14,7 +16,9 @@ function handleFileDrop(evt) {
     evt.preventDefault();
     var files = evt.dataTransfer.files; // FileList object.
     for (var i = 0, f; f = files[i]; i++) {
-        sendRequest(f, f.name);
+        var name = f.name;
+        var newName = name.split(' ').join('_');        
+        sendRequest(f, newName);
     }
 }
 
