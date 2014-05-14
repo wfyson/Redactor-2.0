@@ -2,9 +2,17 @@
 //show the image ready for redaction
 function showImage(image){    
     
-    var document = $('#main').data('doc');
+    var document = $('#main').data('doc');    
     
-    console.log(image);
+    //update the banner
+    $banner = clearBanner();
+    $backBtn = $('<button></button>');
+    $backBtn.addClass('btn btn-default');
+    $backBtn.append("Save and Return");
+    $backBtn.click(function(){
+       saveImageRedaction(); 
+    });        
+    $banner.append($backBtn);
     
     //update the sidebar to display redaction options
     $sidebar = clearSidebar();
@@ -50,10 +58,15 @@ function setupSearch(image){
     $searchHeading.append("Image Search");
     
     //search
+    $searchForm = $('<div></div>');
+    $searchForm.attr('id', 'search-form');
+    $searchForm.addClass('form-group');        
     $searchText = $('<input>');
     $searchText.attr('id', 'search-txt');
     $searchText.addClass('form-control');
     $searchText.attr('type', 'text');
+    $searchForm.append($searchText);
+    
     
     //commercial usage
     $commercial = $('<div></div>');
@@ -116,12 +129,20 @@ function setupSearch(image){
     
     $group.append($btn);
     $group.append($options);
+    
+    $loading = $('<img></img>');
+    $loading.attr('id', 'loading');
+    $loading.attr('src', 'img/loading.gif');
 
     $search.append($searchHeading);
-    $search.append($searchText);
+    $search.append($searchForm);
     $search.append($commercial);
     $search.append($derivative);
-    $search.append($group);
+    
+    $submit = $('<div></div>');
+    $submit.addClass('submit');
+    $submit.append($group).append($loading);   
+    $search.append($submit);
     
     return $search;
 }
@@ -168,30 +189,122 @@ function setupObscure(image){
 function imageSearch(engine){
     
     //first check there are search terms entered!!
+    var tags = $('#search-txt').val();    
+    if (tags === ""){
+        console.log("argghh");
+        $('#search-form').addClass("has-error");
+    }else{
     
-    //get image search engine to use
-    var url;
-    switch (engine){
-        case "flickr":
-            url = '../public_html/php/inputs/flickr.php?callback=?'
-        break;
-        case "google":
-            url = '../public_html/php/inputs/google.php?callback=?';
-        break;
+        //show loading icon
+        $('#loading').show();
+        
+        //remove error class if present
+        $('#search-form').removeClass("has-error");
+
+        //get image search engine to use
+        var url;
+        switch (engine) {
+            case "flickr":
+                url = '../public_html/php/scripts/flickr.php?callback=?'
+                break;
+            case "google":
+                url = '../public_html/php/scripts/google.php?callback=?';
+                break;
+        }
+        
+        var commercial = $('#commercial-check').is(':checked');
+        var derivative = $('#derivative-check').is(':checked');
+
+        //ping search request off to the server
+        $.getJSON(url, {tags: tags, com: commercial, derv: derivative, page: 1},
+        function(res) {
+            displaySearchResults(res.results);
+        });
+    }
+}
+
+function displaySearchResults(results){
+    
+    console.log(results);
+    
+    //hide the loading icon
+    $('#loading').hide();
+    
+    $view = clearView();
+    $view.addClass('img-view');
+    
+    $row = $('<div></div>');
+    $row.addClass('image-row');
+    //go through the first row of images
+    console.log(results.length);
+    for(var i = 0; i < 4; i++){
+       
+        if (i < results.length){
+            
+            var result = results[i];
+            
+            $image = $('<div></div>');
+            $image.addClass('search-prev');
+            
+            $img = $('<img></img>');                 
+            $img.attr('src', result.sizes.Small);
+            
+            $image.click(function(){
+                selectNewImage(result);
+            });
+            
+            $image.append($img);
+            $row.append($image);                        
+        }                        
     }
     
-    var tags = $('#search-txt').val();
-    var commercial = $('#commercial-check').is(':checked');
-    var derivative = $('#derivative-check').is(':checked');
+    $view.append($row);
     
-    console.log(tags);
-    console.log(commercial);
-    console.log(derivative);
+    //and now the second row
+    $secondRow = $('<div></div>');
+    $secondRow.addClass('image-row');
+    for(var i = 4; i < 8; i++){
+       
+        if (i < results.length){
+            
+            var result = results[i];
+            
+            $image = $('<div></div>');
+            $image.addClass('search-prev');
+            
+            $img = $('<img></img>');
+            
+            console.log(result.sizes);
+            
+            $img.attr('src', result.sizes.Small);
+            
+            $image.append($img);
+            $secondRow.append($image);                        
+        }                        
+    }
     
-    //ping search request off to the server
-    //$.getJSON(url, {tags: tags, com: commercial, derv: derivative, page: 1},
-    //function(res) {
-    //    handleResult(res[0], res[1]);
-    //});
+    $view.append($secondRow);
     
+    //and now some controls
+    $controlRow = $('<div></div>');
+    $controlRow.addClass('control-row');
+    
+    $prevBtn = $('<button></button>');
+    $prevBtn.addClass('btn btn-default prev');
+    $prevBtn.append("Previous");
+    
+    $nextBtn = $('<button></button>');
+    $nextBtn.addClass('btn btn-default next');
+    $nextBtn.append("Next");
+    
+    $controlRow.append($prevBtn).append($nextBtn);
+    $view.append($controlRow);
+}
+
+function selectNewImage(image){
+    console.log(image);
+}
+
+function saveImageRedaction(){
+    console.log("save redaction to server and return to the main screen!!!!");
 }

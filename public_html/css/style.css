@@ -235,6 +235,31 @@ body{
     margin: 15px 25% 5px 25%;
 }
 
+.image-sidebar #loading{
+    margin-left: 15px;
+    display: none;
+}
+
 .img-view img{
     width: 100%;
+}
+
+.img-view .image-row{
+    margin-bottom: 15px; 
+}
+
+.img-view .search-prev{    
+    max-width: 23%;
+    margin-left: 1%;
+    margin-right: 1%;
+    
+    display: inline-block;
+}
+
+.img-view .control-row .prev{
+    float: left;
+}
+
+.img-view .control-row .next{
+    float: right;
 }
