@@ -12,15 +12,21 @@ define("API_KEY", "7493f1b9adc9c0e8e55d5be46f60ddb7");
 define("INFO_CALL", "http://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=7493f1b9adc9c0e8e55d5be46f60ddb7&format=php_serial&photo_id=");
 define("SIZE_CALL", "http://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=7493f1b9adc9c0e8e55d5be46f60ddb7&format=php_serial&photo_id=");
 
+//work out the licence
+$commercial = $_GET['com'];
+$derivative = $_GET['derv'];
+
+$licence = "test";
+
 $params = array(
 	'api_key'	=> constant("API_KEY"),
 	'method'	=> 'flickr.photos.search',
-	'tags'          => 'northern,lights', //$_POST['tags']
+	'tags'          => $_GET['tags'],
         'tag_mode'      => 'all',
-        'license'       => '0', //$_POST['licence']
-        'sort'          => 'date-posted-asc', //$_POST['sort']
-        'per_page'      => '9', //$_POST['perpage']
-        'page'          => '1', //$_POST['page']
+        'license'       => $licence,
+        'sort'          => 'date-posted-asc',
+        'per_page'      => '8', //$_POST['perpage']
+        'page'          => $_GET['page'],
 	'format'	=> 'php_serial',
 );
 

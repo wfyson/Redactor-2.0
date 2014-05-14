@@ -51,6 +51,7 @@ function setupSearch(image){
     
     //search
     $searchText = $('<input>');
+    $searchText.attr('id', 'search-txt');
     $searchText.addClass('form-control');
     $searchText.attr('type', 'text');
     
@@ -59,16 +60,18 @@ function setupSearch(image){
     $commercial.addClass('checkbox');
     $commercialLabel = $('<label></label>');
     $commercialCheck = $('<input>');
+    $commercialCheck.attr('id', 'commercial-check');
     $commercialCheck.attr('type', 'checkbox');
     $commercialLabel.append($commercialCheck);
     $commercialLabel.append("Commercial");    
     $commercial.append($commercialLabel);
     
     //derivate usage
-    $derivative = $('<div></div>');
+    $derivative = $('<div></div>');    
     $derivative.addClass('checkbox');
     $derivativeLabel = $('<label></label>');
     $derivativeCheck = $('<input>');
+    $derivativeCheck.attr('id', 'derivative-check');
     $derivativeCheck.attr('type', 'checkbox');
     $derivativeLabel.append($derivativeCheck);
     $derivativeLabel.append("Derivatives");    
@@ -96,12 +99,20 @@ function setupSearch(image){
     $flickr.append($flickrLink);
     $options.append($flickr);
     
+    $flickrLink.click(function(){
+       imageSearch("flickr");
+    });
+    
     $google = $('<li></li>');
     $googleLink = $('<a></a>');
     $googleLink.attr('href', '#');
     $googleLink.append("Google");
     $google.append($googleLink);
     $options.append($google);
+    
+    $googleLink.click(function(){
+       imageSearch("google");
+    });
     
     $group.append($btn);
     $group.append($options);
@@ -139,7 +150,7 @@ function setupLicence(image){
 function setupObscure(image){
     //obscure the image
     $obscure = $('<div></div>');
-    $obscure.addClass('option-div');
+    $obscure.addClass('option-div last');
     $obscureHeading = $('<h4></h4>');
     $obscureHeading.append("Obscure Image");
     
@@ -152,4 +163,35 @@ function setupObscure(image){
     $obscure.append($obscureBtn);
     
     return $obscure;
+}
+
+function imageSearch(engine){
+    
+    //first check there are search terms entered!!
+    
+    //get image search engine to use
+    var url;
+    switch (engine){
+        case "flickr":
+            url = '../public_html/php/inputs/flickr.php?callback=?'
+        break;
+        case "google":
+            url = '../public_html/php/inputs/google.php?callback=?';
+        break;
+    }
+    
+    var tags = $('#search-txt').val();
+    var commercial = $('#commercial-check').is(':checked');
+    var derivative = $('#derivative-check').is(':checked');
+    
+    console.log(tags);
+    console.log(commercial);
+    console.log(derivative);
+    
+    //ping search request off to the server
+    //$.getJSON(url, {tags: tags, com: commercial, derv: derivative, page: 1},
+    //function(res) {
+    //    handleResult(res[0], res[1]);
+    //});
+    
 }

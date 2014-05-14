@@ -66,7 +66,7 @@
             
             <!--A context sensitive side bar to show controls on the currently
                 selected view -->
-            <div id='sidebar' class='col-md-3 col-md-offset-1'>
+            <div id='sidebar' class='col-md-3 col-md-offset-7'>
 
             </div>
             

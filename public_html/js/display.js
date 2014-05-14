@@ -186,7 +186,7 @@ function clearBanner(){
 function clearSidebar(){
      $sidebar = $('#sidebar');
      $sidebar.removeClass();
-     $sidebar.addClass('col-md-3 col-md-offset-1');
+     $sidebar.addClass('col-md-3 col-md-offset-7');
      $sidebar.empty();
      return $sidebar;
 }

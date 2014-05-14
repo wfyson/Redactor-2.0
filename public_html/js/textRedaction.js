@@ -27,8 +27,7 @@ function showText(){
     
     //update the sidebar to display navigable contents
     $sidebar = clearSidebar();
-    $sidebar.removeClass("col-md-offset-1");
-    $sidebar.addClass("text-sidebar col-md-offset-7");
+    $sidebar.addClass("text-sidebar");
     
     //update the view to display the text
     $view = clearView();
@@ -182,7 +181,7 @@ function saveRedactions(){
        redactIds.push($(this).data('id'));
     });
     
-    //ping list off the server
+    //ping list off to the server
     $.getJSON("../public_html/php/inputs/paraRedaction.php?callback=?", {ids: redactIds},
     function(res) {
         handleResult(res[0], res[1]);

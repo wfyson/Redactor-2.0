@@ -88,7 +88,9 @@ body{
 }
 
 #sidebar{
-    height: 800px;
+    position:fixed;
+    
+    height: 85%;
     
     background-color: #f7f7f9;
     
@@ -194,9 +196,8 @@ body{
     max-width: 100%;
 }
 
-.text-sidebar{
-    position:fixed;
-    overflow:auto;    
+.text-sidebar{    
+    padding-top: 5px;
 }
 
 .indent-3{
@@ -220,6 +221,13 @@ body{
     padding-bottom: 20px;
     
     border-bottom-style: outset;
+}
+
+.image-sidebar .option-div.last{    
+    margin-bottom: 20px;
+    padding-bottom: 20px; 
+    
+    border-bottom-style: none;
 }
 
 .image-sidebar .img-thumbnail{
