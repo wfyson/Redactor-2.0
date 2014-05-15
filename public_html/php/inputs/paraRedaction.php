@@ -18,7 +18,7 @@ if ($ids !== null)
 {
     foreach ($ids as $id){           
         $redaction = new ParaRedaction($id);    
-        $redactor->addRedaction($redaction);    
+        $redactor->addParaRedaction($redaction);    
     }
 }
 

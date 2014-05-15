@@ -30,18 +30,20 @@ abstract class OpenXmlWriter
     protected $id;
     protected $file;    
     protected $document;
-    protected $redactions;
+    protected $paraRedactions;
+    protected $imageRedactions;
     protected $newPath;
     protected $zipArchive; //the zip we open and will make all changes to
     
-    public function __construct($document, $redactions=null)
+    public function __construct($document, $paraRedactions=null, $imageRedactions=null)
     {        
         $this->id = session_id();
         //$this->id = 'qk40mfe336c5r0jo4s423nlt62';
         $this->document = $document;
         //$this->file = $document;
         $this->file = $this->document->getFilepath();        
-        $this->redactions = $redactions;             
+        $this->paraRedactions = $paraRedactions;   
+        $this->imageRedactions = $imageRedactions; 
         
         //make a copy of the original file so that we can alter it and send it back with a new name
         $split = explode('.', basename($this->file));        
@@ -68,7 +70,7 @@ abstract class OpenXmlWriter
         $this->zipArchive->open($this->newPath);
         
         //get new image from its specified location and write to server
-        $tempPath = $this->id . '/images/' . basename($webImage);
+        $tempPath = '../../sessions/' . $this->id . '/images/' . basename($webImage);
         copy($webImage, $tempPath);
               
         //simply overwrite the old image with the new one                        

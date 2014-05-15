@@ -138,6 +138,7 @@ function mergeFile(fname) {
 //deals with the result of any of the php uploading processes
 function handleResult(document, redactions){
     $('#main').data("doc", document); 
-    $('#main').data("redactions", redactions);
+    $('#main').data("paraRedactions", redactions.paraRedactions);
+    $('#main').data("imageRedactions", redactions.imageRedactions);
     initDisplay();
 }

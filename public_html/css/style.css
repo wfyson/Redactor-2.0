@@ -223,6 +223,16 @@ body{
     border-bottom-style: outset;
 }
 
+.image-sidebar .option-div .option-title{
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.image-sidebar .option-div .option-title h4{
+    display: inline;
+    margin-right: 10px;
+}
+
 .image-sidebar .option-div.last{    
     margin-bottom: 20px;
     padding-bottom: 20px; 
@@ -262,4 +272,8 @@ body{
 
 .img-view .control-row .next{
     float: right;
+}
+
+.new-img-view img{
+    max-width: 100%;
 }

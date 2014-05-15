@@ -7,7 +7,7 @@ function showText(){
     var text = document.doc;
     
     //get the redactions
-    var redactions = $('#main').data('redactions');
+    var redactions = $('#main').data('paraRedactions');
     
     //add a back button
     $banner = clearBanner();

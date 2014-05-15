@@ -2,7 +2,7 @@
 //show the image ready for redaction
 function showImage(image){    
     
-    var document = $('#main').data('doc');    
+    var document = $('#main').data('doc');         
     
     //update the banner
     $banner = clearBanner();
@@ -27,6 +27,9 @@ function showImage(image){
     $image.attr('src', image.link);
     
     $view.append($image);
+    
+    //save a reference to the image
+    $view.data('image', image);
     
 }
 
@@ -54,8 +57,20 @@ function setupSearch(image){
     $search = $('<div></div>');
     $search.addClass('option-div');
     
+    $searchTitle = $('<div></div>');
+    $searchTitle.addClass("option-title");
+    
     $searchHeading = $('<h4></h4>');
     $searchHeading.append("Image Search");
+    
+    $searchHelp = $('<span></span>');
+    $searchHelp.addClass("glyphicon glyphicon-question-sign");
+    $searchHelp.attr('data-toggle', 'tooltip');
+    $searchHelp.attr('data-placement', 'right');
+    $searchHelp.attr('title', 'Search for replacement images using Creative Commons licence search engines.');
+    $searchHelp.tooltip();
+    
+    $searchTitle.append($searchHeading).append($searchHelp);
     
     //search
     $searchForm = $('<div></div>');
@@ -134,7 +149,7 @@ function setupSearch(image){
     $loading.attr('id', 'loading');
     $loading.attr('src', 'img/loading.gif');
 
-    $search.append($searchHeading);
+    $search.append($searchTitle);
     $search.append($searchForm);
     $search.append($commercial);
     $search.append($derivative);
@@ -151,8 +166,21 @@ function setupLicence(image){
     //add a licence option
     $licence = $('<div></div>');
     $licence.addClass('option-div');
+    
+    $licenceTitle = $('<div></div>');
+    $licenceTitle.addClass("option-title");
+    
     $licenceHeading = $('<h4></h4>');
-    $licenceHeading.append("CC Licence");
+    $licenceHeading.append("Image Search");
+    
+    $licenceHelp = $('<span></span>');
+    $licenceHelp.addClass("glyphicon glyphicon-question-sign");
+    $licenceHelp.attr('data-toggle', 'tooltip');
+    $licenceHelp.attr('data-placement', 'right');
+    $licenceHelp.attr('title', 'Choose a Creative Commons licence to apply to the image.');
+    $licenceHelp.tooltip();
+    
+    $licenceTitle.append($licenceHeading).append($licenceHelp);
     
     $licenceSelect = $('<select></select>');
     $licenceSelect.addClass('form-control');
@@ -162,7 +190,7 @@ function setupLicence(image){
         $option.append(licences[i]);
         $licenceSelect.append($option);
     }    
-    $licence.append($licenceHeading);
+    $licence.append($licenceTitle);
     $licence.append($licenceSelect);
     
     return $licence;
@@ -172,15 +200,28 @@ function setupObscure(image){
     //obscure the image
     $obscure = $('<div></div>');
     $obscure.addClass('option-div last');
+    
+    $obscureTitle = $('<div></div>');
+    $obscureTitle.addClass("option-title");
+
     $obscureHeading = $('<h4></h4>');
-    $obscureHeading.append("Obscure Image");
+    $obscureHeading.append("Image Search");
+
+    $obscureHelp = $('<span></span>');
+    $obscureHelp.addClass("glyphicon glyphicon-question-sign");
+    $obscureHelp.attr('data-toggle', 'tooltip');
+    $obscureHelp.attr('data-placement', 'right');
+    $obscureHelp.attr('title', 'Trnasform the image to obscure its content.');
+    $obscureHelp.tooltip();
+
+    $obscureTitle.append($obscureHeading).append($obscureHelp);
     
     $obscureBtn = $('<button></button>');
     $obscureBtn.addClass('btn btn-default');
     $obscureBtn.attr('type', 'button');
     $obscureBtn.append("Obscure");
     
-    $obscure.append($obscureHeading);
+    $obscure.append($obscureTitle);
     $obscure.append($obscureBtn);
     
     return $obscure;
@@ -236,7 +277,6 @@ function displaySearchResults(results){
     $row = $('<div></div>');
     $row.addClass('image-row');
     //go through the first row of images
-    console.log(results.length);
     for(var i = 0; i < 4; i++){
        
         if (i < results.length){
@@ -272,11 +312,13 @@ function displaySearchResults(results){
             $image = $('<div></div>');
             $image.addClass('search-prev');
             
-            $img = $('<img></img>');
-            
-            console.log(result.sizes);
+            $img = $('<img></img>');            
             
             $img.attr('src', result.sizes.Small);
+            
+            $image.click(function(){
+                selectNewImage(result);
+            });
             
             $image.append($img);
             $secondRow.append($image);                        
@@ -302,9 +344,81 @@ function displaySearchResults(results){
 }
 
 function selectNewImage(image){
-    console.log(image);
+
+    //setup the view
+    $view = clearView();    
+    $view.addClass('new-img-view');
+
+    //TODO - a function to get the largest image size link available (to guarantee a valid option is being presented for this image)
+    var newLink = getLargestSize(image);
+    
+    //display the new image    
+    $newImage = $('<img></img>');
+    $newImage.attr('src', newLink);
+    $view.append($newImage);
+    
+    //and display some metadata about it... (licence, link to the original, author, etc.)
+  
+    //get old image
+    var oldImage = $view.data('image');
+    console.log(oldImage);
+    var oldImagePath = oldImage.name + '.' + oldImage.format;
+    
+    //generate a caption
+    var caption = image.title + ", " + image.owner + ", " + image.licence;
+    
+    //store the required information to make a redaction of this type 
+    var replaceRedaction = new ReplaceRedaction(oldImagePath, image.sizes.Large, caption);
+    
+    $view.data('redaction', replaceRedaction);
+}
+
+function getLargestSize(image){
+    var sizes = image.sizes;
+    if (sizes.Large !== undefined){
+        return sizes.Large;
+    }
+    if (sizes.Medium_800 !== undefined){
+        return sizes.Medium_800;
+    }
+    if (sizes.Medium_640 !== undefined){
+        return sizes.Medium_640;
+    }
+    if (sizes.Medium !== undefined){
+        return sizes.Medium;
+    }
+    if (sizes.Small_320 !== undefined){
+        return sizes.Small_320;
+    }
+    if (sizes.Small !== undefined){
+        return sizes.Small;
+    }
 }
 
 function saveImageRedaction(){
-    console.log("save redaction to server and return to the main screen!!!!");
+    
+    $view = $('#view');
+
+    var redaction = $view.data('redaction');
+
+    //ping redaction off to the server
+    $.getJSON("../public_html/php/inputs/imageRedaction.php?callback=?",
+    {oldimage: redaction.oldImage, newimage: redaction.newImage, 
+        caption: redaction.caption, type: redaction.type},
+    function(res) {
+        handleResult(res[0], res[1]);
+    });
+
+}
+
+/*
+ * Javascript objects for storing information about the image's redaction
+ */
+function ReplaceRedaction(oldImage, newImage, caption) {
+    
+    var self = this;
+    self.oldImage = oldImage;
+    self.newImage = newImage;
+    self.caption = caption;
+    self.type = "replace";
 }

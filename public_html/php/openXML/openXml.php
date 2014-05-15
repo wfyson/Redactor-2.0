@@ -36,6 +36,10 @@ class RedactorImage{
         //$this->copyright = $metadataReader->readField("copyright"); 
     }
     
+    public function getName(){
+        return $this->name;
+    }
+    
     /*
      * Generate a JSON object for this image that returns information such as 
      * a link, licence data and any other metadata we might care to mention...
@@ -45,6 +49,7 @@ class RedactorImage{
         $json = array();
         
         $json['name'] = $this->name;
+        $json['format'] = $this->format;
         $json['artist'] = $this->artist;
         $json['copyright'] = $this->copyright;
         $json['link'] = substr($this->url, 6);
@@ -86,6 +91,11 @@ abstract class OpenXmlDocument{
     public function getFilepath()
     {
         return $this->filepath;
+    }
+    
+    public function getRedactorImages()
+    {
+        return $this->redactorImages;
     }
 }
 

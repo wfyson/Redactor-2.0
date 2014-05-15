@@ -84,7 +84,6 @@ if ($rsp_obj['stat'] == 'ok'){
             $infoUrl = constant("INFO_CALL") . $photo[id];
             $infoResponse = file_get_contents($infoUrl);
             $infoObj = unserialize($infoResponse);
-            ChromePhp::log($infoObj);
             $photoInfo = $infoObj[photo];            
             
             //get urls to the photo
@@ -96,7 +95,8 @@ if ($rsp_obj['stat'] == 'ok'){
             $jsonSizes = array();
             foreach($photoSize[size] as $size)
             {
-                $jsonSizes[$size[label]] = $size[source];
+                $label = str_replace(' ', '_', $size[label]);
+                $jsonSizes[$label] = $size[source];
             }
             
             //get the photos licence
@@ -106,28 +106,28 @@ if ($rsp_obj['stat'] == 'ok'){
                     $licenceStr = "All Rights Reserved";
                     break;
                 case 1:
-                    $licenceStr = "All Rights Reserved";
+                    $licenceStr = "Attribution-NonCommercial-ShareAlike License";
                     break;
                 case 2:
-                    $licenceStr = "All Rights Reserved";
+                    $licenceStr = "Attribution-NonCommercial License";
                     break;
                 case 3:
-                    $licenceStr = "All Rights Reserved";
+                    $licenceStr = "Attribution-NonCommercial-NoDerivs License";
                     break;
                 case 4:
-                    $licenceStr = "All Rights Reserved";
+                    $licenceStr = "Attribution License";
                     break;
                 case 5:
-                    $licenceStr = "All Rights Reserved";
+                    $licenceStr = "Attribution-ShareAlike License";
                     break;
                 case 6:
-                    $licenceStr = "All Rights Reserved";
+                    $licenceStr = "Attribution-NoDerivs License";
                     break;
                 case 7:
-                    $licenceStr = "All Rights Reserved";
+                    $licenceStr = "No known copyright restrictions";
                     break;
                 case 8:
-                    $licenceStr = "All Rights Reserved";
+                    $licenceStr = "United States Government Work";
                     break;                
             }
             
@@ -138,6 +138,7 @@ if ($rsp_obj['stat'] == 'ok'){
             $jsonPhoto["desc"] = $photoInfo[description][_content];
             $jsonPhoto["owner"] = $photoInfo[owner][username];
             $jsonPhoto["sizes"] = $jsonSizes;
+            $jsonPhoto["licence"] = $licenceStr;
             
             array_push($json["results"], $jsonPhoto);            
         }

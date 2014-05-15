@@ -7,7 +7,9 @@ function initDisplay(){
     var document = $('#main').data('doc');   
     
     //get the redactions
-    var redactions = $('#main').data('redactions');
+    var paraRedactions = $('#main').data('paraRedactions');
+    var imageRedactions = $('#main').data('imageRedactions');
+    var totalNo = paraRedactions.length + imageRedactions.length;
     
     //first hide the file upload stuff
     $('#initial').hide();
@@ -19,7 +21,7 @@ function initDisplay(){
     $redactBtn.append("Redact");
     
     //disable button if no redactions
-    if (redactions.length === 0){
+    if (totalNo === 0){
         $redactBtn.addClass("disabled");        
     }
 
@@ -33,9 +35,9 @@ function initDisplay(){
     $overview = $('<h3></h3>');
     $overview.attr('id', 'overview');
     var redactText = " Redactions";
-    if (redactions.length === 1)
+    if (totalNo === 1)
         redactText = " Redaction";    
-    var overview = redactions.length + redactText;       
+    var overview = totalNo + redactText;       
     $overview.append(overview);    
     $banner.append($overview);
     
