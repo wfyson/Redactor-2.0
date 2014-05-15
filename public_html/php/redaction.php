@@ -34,7 +34,14 @@ class ReplaceRedaction implements Redaction
     }
     
     public function generateJSON(){                
+        $json = array();
         
+        $json['original'] = $this->oldImageName;
+        $json['new'] = $this->newImage;
+        $json['caption'] = $this->caption;
+        $json['type'] = 'replace';
+        
+        return $json;
     }
 }
 

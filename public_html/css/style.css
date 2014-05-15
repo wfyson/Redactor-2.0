@@ -216,8 +216,11 @@ body{
     Image Redaction
 */
 
-.image-sidebar .option-div{    
-    margin-bottom: 20px;
+#banner .cancel-btn{
+    float: right;
+}
+
+.image-sidebar .option-div{  
     padding-bottom: 20px;
     
     border-bottom-style: outset;
@@ -233,10 +236,7 @@ body{
     margin-right: 10px;
 }
 
-.image-sidebar .option-div.last{    
-    margin-bottom: 20px;
-    padding-bottom: 20px; 
-    
+.image-sidebar .option-div.last{     
     border-bottom-style: none;
 }
 

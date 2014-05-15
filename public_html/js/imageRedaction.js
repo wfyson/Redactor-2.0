@@ -14,6 +14,11 @@ function showImage(image){
     });        
     $banner.append($backBtn);
     
+    //add overview
+    $overview = $('<h3></h3>');
+    $overview.attr('id', 'image-overview');
+    $banner.append($overview);
+    
     //update the sidebar to display redaction options
     $sidebar = clearSidebar();
     $sidebar.addClass("image-sidebar");
@@ -21,7 +26,7 @@ function showImage(image){
     
     //update the view to display the image
     $view = clearView();
-    $view.addClass("img-view");         
+    $view.addClass("img-view");             
     
     $image = $('<img></img>');
     $image.attr('src', image.link);
@@ -33,6 +38,7 @@ function showImage(image){
     
 }
 
+//gui stuff
 function setupSidebar($sidebar, image){
     
     //thumbnail
@@ -52,6 +58,7 @@ function setupSidebar($sidebar, image){
     $sidebar.append($obscure);
 }
 
+//gui stuff
 function setupSearch(image){
     //image searches
     $search = $('<div></div>');
@@ -162,6 +169,7 @@ function setupSearch(image){
     return $search;
 }
 
+//gui stuff
 function setupLicence(image){
     //add a licence option
     $licence = $('<div></div>');
@@ -196,6 +204,7 @@ function setupLicence(image){
     return $licence;
 }
 
+//gui stuff
 function setupObscure(image){
     //obscure the image
     $obscure = $('<div></div>');
@@ -227,6 +236,7 @@ function setupObscure(image){
     return $obscure;
 }
 
+//perform a search based on form input
 function imageSearch(engine){
     
     //first check there are search terms entered!!
@@ -264,9 +274,8 @@ function imageSearch(engine){
     }
 }
 
+//displays results from a replace image search
 function displaySearchResults(results){
-    
-    console.log(results);
     
     //hide the loading icon
     $('#loading').hide();
@@ -289,8 +298,8 @@ function displaySearchResults(results){
             $img = $('<img></img>');                 
             $img.attr('src', result.sizes.Small);
             
-            $image.click(function(){
-                selectNewImage(result);
+            $image.click({param1: result}, function(event) {
+                selectNewImage(event.data.param1);
             });
             
             $image.append($img);
@@ -316,8 +325,8 @@ function displaySearchResults(results){
             
             $img.attr('src', result.sizes.Small);
             
-            $image.click(function(){
-                selectNewImage(result);
+            $image.click({param1: result}, function(event) {
+                selectNewImage(event.data.param1);
             });
             
             $image.append($img);
@@ -343,13 +352,23 @@ function displaySearchResults(results){
     $view.append($controlRow);
 }
 
+//a replacement image has been selected
 function selectNewImage(image){
 
     //setup the view
     $view = clearView();    
     $view.addClass('new-img-view');
 
-    //TODO - a function to get the largest image size link available (to guarantee a valid option is being presented for this image)
+    //update the overview    
+    $('#image-overview').append('Replace with "' + image.title + '"');
+    
+    //cancel button
+    $cancelBtn = $('<button></button>');
+    $cancelBtn.addClass('btn btn-danger cancel-btn');
+    $cancelBtn.append("Cancel");
+    $('#banner').append($cancelBtn);
+
+    //get the appropriate link for the new image
     var newLink = getLargestSize(image);
     
     //display the new image    
@@ -358,10 +377,26 @@ function selectNewImage(image){
     $view.append($newImage);
     
     //and display some metadata about it... (licence, link to the original, author, etc.)
+    console.log(image);
+    $metadata = $('<div></div>');
+   
+    $title = $('<span></span>');
+    $title.append(image.title);
+    
+    $owner = $('<span></span>');
+    $owner.append(image.owner);
+    
+    $link = $('<span></span>');
+    $link.append(image.url);
+    
+    $licence = $('<span></span>');
+    $licence.append(image.licence);
+  
+    $metadata.append($title).append($owner).append($link).append($licence);
+    $view.append($metadata);
   
     //get old image
     var oldImage = $view.data('image');
-    console.log(oldImage);
     var oldImagePath = oldImage.name + '.' + oldImage.format;
     
     //generate a caption
@@ -373,6 +408,7 @@ function selectNewImage(image){
     $view.data('redaction', replaceRedaction);
 }
 
+//gets a link for an image when a range are available
 function getLargestSize(image){
     var sizes = image.sizes;
     if (sizes.Large !== undefined){
@@ -393,6 +429,20 @@ function getLargestSize(image){
     if (sizes.Small !== undefined){
         return sizes.Small;
     }
+}
+
+//create a licence redaction
+function selectNewLicence(){
+    
+}
+
+//remove the redaction
+function cancelRedaction(){
+    
+    //if replace redaction and search already been done, go back to search results
+    
+    //otherwise just show image
+    
 }
 
 function saveImageRedaction(){

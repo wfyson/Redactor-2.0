@@ -85,7 +85,7 @@ if ($rsp_obj['stat'] == 'ok'){
             $infoResponse = file_get_contents($infoUrl);
             $infoObj = unserialize($infoResponse);
             $photoInfo = $infoObj[photo];            
-            
+
             //get urls to the photo
             $sizeUrl = constant("SIZE_CALL") . $photo[id];
             $sizeResponse = file_get_contents($sizeUrl);
@@ -130,12 +130,12 @@ if ($rsp_obj['stat'] == 'ok'){
                     $licenceStr = "United States Government Work";
                     break;                
             }
-            
-
+                        
             //package up everything to do with a photo
             $jsonPhoto = array();
             $jsonPhoto["title"] = $photoInfo[title][_content];
             $jsonPhoto["desc"] = $photoInfo[description][_content];
+            $jsonPhoto["url"] = $photoInfo[urls][url][0][_content];
             $jsonPhoto["owner"] = $photoInfo[owner][username];
             $jsonPhoto["sizes"] = $jsonSizes;
             $jsonPhoto["licence"] = $licenceStr;

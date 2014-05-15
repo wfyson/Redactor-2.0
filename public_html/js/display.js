@@ -11,6 +11,8 @@ function initDisplay(){
     var imageRedactions = $('#main').data('imageRedactions');
     var totalNo = paraRedactions.length + imageRedactions.length;
     
+    console.log(imageRedactions);
+    
     //first hide the file upload stuff
     $('#initial').hide();
     
@@ -129,6 +131,11 @@ function newImage(image){
     $imageBox = $('<div></div>');
     $imageBox.addClass('entry');
     
+    //see if there is a redaction for this image
+    var redaction = getRedaction(image);
+    console.log(redaction);
+    
+    
     //add class based on licence information
     $imageBox.addClass('bg-danger');
     
@@ -174,6 +181,20 @@ function newImage(image){
     });
 }
 
+//when displaying an image, use this function to check if it has a redaction or not
+function getRedaction(image){
+    var imageRedactions = $('#main').data('imageRedactions');
+    var imagePath = image.name + '.' + image.format;
+    for(var i = 0; i < imageRedactions.length; i++){
+        var redaction = imageRedactions[i];
+        
+        if (redaction.original === imagePath){ //a match has been found
+            return redaction;
+        }
+    }
+    //no match was found
+    return null;
+}
 
 //used to clear the banner when we want to put new content on it
 function clearBanner(){

@@ -114,7 +114,6 @@ class Redactor{
                 $imageRedactions[] = $imageRedaction->generateJSON();
             }            
         }
-        
         $json['paraRedactions'] = $paraRedactions;
         $json['imageRedactions'] = $imageRedactions;
         
