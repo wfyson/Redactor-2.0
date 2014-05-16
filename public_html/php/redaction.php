@@ -19,13 +19,18 @@ interface Redaction
 class ReplaceRedaction implements Redaction
 {
             
-    public $oldImageName, $newImage, $caption;
+    public $oldImageName, $newImage, $licence, $caption, $newTitle, $owner, $imageUrl;
                 
-    public function __construct($oldImageName, $newImage, $caption)
+    public function __construct($oldImageName, $newImage, $licence, $caption, $newTitle, $owner, $imageUrl)
     {
         $this->oldImageName = $oldImageName;
-        $this->newImage = $newImage;  
-        $this->caption = $caption;
+        $this->newImage = $newImage;
+        $this->licence = $licence;
+        $this->caption = $caption;        
+   
+        $this->newTitle = $newTitle;
+        $this->owner = $owner;
+        $this->imageUrl = $imageUrl;
     }
     
     public function getType()
@@ -37,9 +42,14 @@ class ReplaceRedaction implements Redaction
         $json = array();
         
         $json['original'] = $this->oldImageName;
-        $json['new'] = $this->newImage;
+        $json['newimage'] = $this->newImage;
+        $json['licence'] = $this->licence;
         $json['caption'] = $this->caption;
         $json['type'] = 'replace';
+        
+        $json['newTitle'] = $this->newTitle;
+        $json['owner'] = $this->owner;
+        $json['imageUrl'] = $this->imageUrl;
         
         return $json;
     }
@@ -66,7 +76,13 @@ class LicenceRedaction implements Redaction
     }   
     
     public function generateJSON(){
+        $json = array();
         
+        $json['original'] = $this->imageName;
+        $json['licence'] = $this->licence;
+        $json['type'] = 'licence';
+        
+        return $json;
     }
 }
 

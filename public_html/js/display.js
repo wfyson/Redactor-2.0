@@ -11,8 +11,6 @@ function initDisplay(){
     var imageRedactions = $('#main').data('imageRedactions');
     var totalNo = paraRedactions.length + imageRedactions.length;
     
-    console.log(imageRedactions);
-    
     //first hide the file upload stuff
     $('#initial').hide();
     
@@ -132,11 +130,33 @@ function newImage(image){
     $imageBox.addClass('entry');
     
     //see if there is a redaction for this image
-    var redaction = getRedaction(image);
-    console.log(redaction);
+    var redaction = getRedaction(image);    
     
+    //apply background based on licence information
+    if (redaction !== null){                        
+        $imageBox.addClass('bg-success');
+        
+        switch (redaction.type){
+            case "replace":
+                displayReplaceEntry(image, redaction);
+                break;
+            case "licence":
+                displayLicenceEntry(image, redaction);
+                break;                
+        }
+    }else{
+        displayImageEntry(image);
+    }
+      
+    //needs some clicking functionality
+    $item.click(function(){
+        showImage(image);
+    });
+}
+
+function displayImageEntry(image){
     
-    //add class based on licence information
+    //background
     $imageBox.addClass('bg-danger');
     
     //add the image
@@ -173,12 +193,84 @@ function newImage(image){
     $imageBox.append($meta);    
     $item.append($imageBox);
     $list.append($item);
+}
+
+function displayReplaceEntry(image, redaction){
+    //background
+    $imageBox.addClass('bg-success');
     
-    //needs some clicking functionality    
-    //needs some clicking functionality
-    $item.click(function(){
-        showImage(image);
-    });
+    //add the old image
+    $imgPrev = $('<div></div>');
+    $imgPrev.addClass('img-preview');
+    $img = $('<img></img>');
+    $img.attr('src', (image.link));
+    $imgPrev.append($img);
+  
+    //add the new image
+    $newImgPrev = $('<div></div>');
+    $newImgPrev.addClass('img-preview');
+    $newImg = $('<img></img>');
+    $newImg.attr('src', (redaction.newimage));
+    $newImgPrev.append($newImg);
+    
+    //add the metadata
+    $meta = $('<div></div>');
+    $meta.addClass('meta');
+    
+    //new title
+    $title = $('<span></span>');
+    $titleLabel = $('<b>Title: </b>');  
+    $title.append($titleLabel).append(redaction.newTitle);
+    $meta.append($title);
+    
+    //new owner
+    $owner = $('<span></span>');
+    $ownerLabel = $('<b>Artist: </b>');  
+    $owner.append($ownerLabel).append(redaction.owner);
+    $meta.append($owner);
+    
+    //new licence
+    $licence = $('<span></span>');
+    $licenceLabel = $('<b>Licence: </b>');  
+    $licence.append($licenceLabel).append(redaction.licence);
+    $meta.append($licence);
+    
+    //construct the entry
+    $imageBox.append($imgPrev);
+    $imageBox.append($newImgPrev);
+    $imageBox.append($meta);    
+    $item.append($imageBox);
+    $list.append($item);
+    
+}
+
+function displayLicenceEntry(image, redaction){
+    //background
+    $imageBox.addClass('bg-success');
+    
+    //add the image
+    $imgPrev = $('<div></div>');
+    $imgPrev.addClass('img-preview');
+    $img = $('<img></img>');
+    $img.attr('src', (image.link));
+    $imgPrev.append($img);
+    
+    //add the metadata
+    $meta = $('<div></div>');
+    $meta.addClass('meta');
+    
+    //new licence
+    $licence = $('<span></span>');
+    $licenceLabel = $('<b>Added Licence: </b>');  
+    $licence.append($licenceLabel).append(redaction.licence);
+    $meta.append($licence);
+    
+    //construct the entry
+    $imageBox.append($imgPrev);
+    $imageBox.append($meta);    
+    $item.append($imageBox);
+    $list.append($item);
+    
 }
 
 //when displaying an image, use this function to check if it has a redaction or not

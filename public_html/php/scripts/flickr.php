@@ -74,12 +74,21 @@ $rsp_obj = unserialize($rsp);
 $json = array();
 if ($rsp_obj['stat'] == 'ok'){                   
     
+        $page = $rsp_obj[photos][page];
+        $total = intval($rsp_obj[photos][total]);
+        if ($page * 8 < $total){            
+            $json["next"] = true;
+        }
+        
+        $json["page"] = $page;
+        $json["total"] = $total;
+    
         $json["results"] = array();
         
         //cycle through the photos, getting some information for each one
-        $photos = $rsp_obj[photos][photo];                            
+        $photos = $rsp_obj[photos][photo];               
         foreach($photos as $photo)
-        {
+        {            
             //get more information about the photo
             $infoUrl = constant("INFO_CALL") . $photo[id];
             $infoResponse = file_get_contents($infoUrl);

@@ -266,6 +266,10 @@ body{
     display: inline-block;
 }
 
+.img-view .control-row{
+    width: 100%;
+}
+
 .img-view .control-row .prev{
     float: left;
 }
@@ -274,6 +278,29 @@ body{
     float: right;
 }
 
+.img-view .control-row .results-progress{
+    margin-left: auto;
+    margin-right: auto;
+    width: 110px;
+}
+
 .new-img-view img{
     max-width: 100%;
+}
+
+.new-licence-view img{
+    max-width: 60%;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.new-licence-view .new-licence{
+    margin-left: 4%;
+    width: 35%;
+    display: inline-block;
+    vertical-align: middle;
+    
+    border-left: solid;
+    border-width: thin;
+    padding-left: 1%;
 }

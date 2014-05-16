@@ -3,8 +3,12 @@
 function showImage(image){    
     
     var document = $('#main').data('doc');         
+    var redaction = getRedaction(image);
     
-    //update the banner
+    //save a reference to the image
+    $view.data('image', image); 
+    
+    //setup the banner
     $banner = clearBanner();
     $backBtn = $('<button></button>');
     $backBtn.addClass('btn btn-default');
@@ -12,30 +16,81 @@ function showImage(image){
     $backBtn.click(function(){
        saveImageRedaction(); 
     });        
-    $banner.append($backBtn);
-    
-    //add overview
     $overview = $('<h3></h3>');
     $overview.attr('id', 'image-overview');
-    $banner.append($overview);
+    $banner.append($backBtn).append($overview);
+    
+    //update the GUI
+    updateGUI(redaction);
     
     //update the sidebar to display redaction options
     $sidebar = clearSidebar();
     $sidebar.addClass("image-sidebar");
-    setupSidebar($sidebar, image);    
+    setupSidebar($sidebar, image);            
+}
+
+function updateGUI(redaction){                
+    var image = $('#view').data('image');
+
+    if (redaction === null){
+        //overview
+        updateImageOverview("Redacting Image", false);
+        
+        //view
+        displayImage(image);
+    }else{
+        if(redaction.type === "replace"){
+            //overview
+            var heading = 'Replace with "' + redaction.newTitle + '"';
+            updateImageOverview(heading, true);           
+            
+            //view
+            console.log(redaction);
+            displayNewImage(redaction.newimage, redaction.newTitle, redaction.owner, redaction.imageUrl, redaction.licence);            
+        }
+        
+        if(redaction.type === "licence"){
+            //overview
+            var heading = 'Add new CC licence';
+            updateImageOverview(heading, true);           
+            
+            //view
+            displayNewLicence(image, redaction.licence);     
+  
+        }
+    }    
+}
+
+//updates the banner with the desired heaing and with cancel button if required
+function updateImageOverview(heading, cancel){
+    //clear what's already there
+    $('#banner .cancel-btn').remove();        
+    $heading = $('#image-overview');
+    $heading.empty();
     
-    //update the view to display the image
+    //update heading
+    $heading.append(heading);
+
+    //add cancel button
+    if(cancel){
+        $cancelBtn = $('<button></button>');
+        $cancelBtn.addClass('btn btn-danger cancel-btn');
+        $cancelBtn.append("Cancel");
+        $('#banner').append($cancelBtn);     
+        $cancelBtn.click(function(){
+           cancelRedaction(); 
+        });
+    }
+}
+
+function displayImage(image){
     $view = clearView();
     $view.addClass("img-view");             
     
     $image = $('<img></img>');
     $image.attr('src', image.link);
     
-    $view.append($image);
-    
-    //save a reference to the image
-    $view.data('image', image);
-    
+    $view.append($image);    
 }
 
 //gui stuff
@@ -134,8 +189,8 @@ function setupSearch(image){
     $flickr.append($flickrLink);
     $options.append($flickr);
     
-    $flickrLink.click(function(){
-       imageSearch("flickr");
+    $flickrLink.click(function(){           
+        imageSearch("flickr", 1);
     });
     
     $google = $('<li></li>');
@@ -146,7 +201,7 @@ function setupSearch(image){
     $options.append($google);
     
     $googleLink.click(function(){
-       imageSearch("google");
+       imageSearch("google", 1);
     });
     
     $group.append($btn);
@@ -179,7 +234,7 @@ function setupLicence(image){
     $licenceTitle.addClass("option-title");
     
     $licenceHeading = $('<h4></h4>');
-    $licenceHeading.append("Image Search");
+    $licenceHeading.append("Add CC Licence");
     
     $licenceHelp = $('<span></span>');
     $licenceHelp.addClass("glyphicon glyphicon-question-sign");
@@ -191,13 +246,18 @@ function setupLicence(image){
     $licenceTitle.append($licenceHeading).append($licenceHelp);
     
     $licenceSelect = $('<select></select>');
+    $licenceSelect.attr('id', 'licence-select');
     $licenceSelect.addClass('form-control');
-    var licences = ["CC0", "CC BY", "CC BY-SA", "CC BY-ND", "CC BY-NC", "CC BY-NC-SA", "CC BY-NC-ND"];
+    var licences = ["Select a Licence", "CC0", "CC BY", "CC BY-SA", "CC BY-ND", "CC BY-NC", "CC BY-NC-SA", "CC BY-NC-ND"];
     for (var i = 0; i < licences.length; i++){
         $option = $('<option></option>');
         $option.append(licences[i]);
         $licenceSelect.append($option);
     }    
+    $licenceSelect.change(function(){
+        selectNewLicence($(this).val());
+    });
+                
     $licence.append($licenceTitle);
     $licence.append($licenceSelect);
     
@@ -214,7 +274,7 @@ function setupObscure(image){
     $obscureTitle.addClass("option-title");
 
     $obscureHeading = $('<h4></h4>');
-    $obscureHeading.append("Image Search");
+    $obscureHeading.append("Obscure Image");
 
     $obscureHelp = $('<span></span>');
     $obscureHelp.addClass("glyphicon glyphicon-question-sign");
@@ -237,7 +297,7 @@ function setupObscure(image){
 }
 
 //perform a search based on form input
-function imageSearch(engine){
+function imageSearch(engine, page){
     
     //first check there are search terms entered!!
     var tags = $('#search-txt').val();    
@@ -267,15 +327,15 @@ function imageSearch(engine){
         var derivative = $('#derivative-check').is(':checked');
 
         //ping search request off to the server
-        $.getJSON(url, {tags: tags, com: commercial, derv: derivative, page: 1},
+        $.getJSON(url, {tags: tags, com: commercial, derv: derivative, page: page},
         function(res) {
-            displaySearchResults(res.results);
+            displaySearchResults(res.results, res.page, res.total, res.next, engine);
         });
     }
 }
 
 //displays results from a replace image search
-function displaySearchResults(results){
+function displaySearchResults(results, page, total, next, engine){
     
     //hide the loading icon
     $('#loading').hide();
@@ -340,61 +400,53 @@ function displaySearchResults(results){
     $controlRow = $('<div></div>');
     $controlRow.addClass('control-row');
     
+    //previous button
     $prevBtn = $('<button></button>');
     $prevBtn.addClass('btn btn-default prev');
     $prevBtn.append("Previous");
     
+    if(page === 1){
+        $prevBtn.addClass('disabled');
+    }
+    
+    $prevBtn.click(function(){
+        page = page - 1;
+        imageSearch(engine, page);
+    });
+    
+    //next button
     $nextBtn = $('<button></button>');
     $nextBtn.addClass('btn btn-default next');
     $nextBtn.append("Next");
     
-    $controlRow.append($prevBtn).append($nextBtn);
+    if(!next){
+        $nextBtn.addClass('disabled');
+    }
+    
+    $nextBtn.click(function(){
+        page = page + 1;
+        imageSearch(engine, page);
+    });
+    
+    //progress through results
+    var start = ((page-1) * 8) + 1;
+    var end = start + 7;
+    var resultsStr = start +  " - " + end + " of " + total + ".";
+    $total = $('<div></div>');
+    $total.addClass('results-progress');
+    $total.append(resultsStr);
+    
+    $controlRow.append($prevBtn).append($nextBtn).append($total);
     $view.append($controlRow);
 }
 
 //a replacement image has been selected
 function selectNewImage(image){
-
-    //setup the view
-    $view = clearView();    
-    $view.addClass('new-img-view');
-
-    //update the overview    
-    $('#image-overview').append('Replace with "' + image.title + '"');
+    console.log(image);
     
-    //cancel button
-    $cancelBtn = $('<button></button>');
-    $cancelBtn.addClass('btn btn-danger cancel-btn');
-    $cancelBtn.append("Cancel");
-    $('#banner').append($cancelBtn);
-
     //get the appropriate link for the new image
     var newLink = getLargestSize(image);
     
-    //display the new image    
-    $newImage = $('<img></img>');
-    $newImage.attr('src', newLink);
-    $view.append($newImage);
-    
-    //and display some metadata about it... (licence, link to the original, author, etc.)
-    console.log(image);
-    $metadata = $('<div></div>');
-   
-    $title = $('<span></span>');
-    $title.append(image.title);
-    
-    $owner = $('<span></span>');
-    $owner.append(image.owner);
-    
-    $link = $('<span></span>');
-    $link.append(image.url);
-    
-    $licence = $('<span></span>');
-    $licence.append(image.licence);
-  
-    $metadata.append($title).append($owner).append($link).append($licence);
-    $view.append($metadata);
-  
     //get old image
     var oldImage = $view.data('image');
     var oldImagePath = oldImage.name + '.' + oldImage.format;
@@ -403,9 +455,40 @@ function selectNewImage(image){
     var caption = image.title + ", " + image.owner + ", " + image.licence;
     
     //store the required information to make a redaction of this type 
-    var replaceRedaction = new ReplaceRedaction(oldImagePath, image.sizes.Large, caption);
-    
+    var replaceRedaction = new ReplaceRedaction(oldImagePath, newLink, image.licence, caption, image.title, image.owner, image.url);    
     $view.data('redaction', replaceRedaction);
+    
+    //update the GUI
+    updateGUI(replaceRedaction);    
+}
+function displayNewImage(newLink, title, owner, imageUrl, licence){
+    
+    //setup the view
+    $view = clearView();    
+    $view.addClass('new-img-view');        
+    
+    //display the new image    
+    $newImage = $('<img></img>');
+    $newImage.attr('src', newLink);
+    $view.append($newImage);
+    
+    //and display some metadata about it... (licence, link to the original, author, etc.)
+    $metadata = $('<div></div>');
+   
+    $title = $('<span></span>');
+    $title.append(title);
+    
+    $owner = $('<span></span>');
+    $owner.append(owner);
+    
+    $link = $('<span></span>');
+    $link.append(imageUrl);
+    
+    $licence = $('<span></span>');
+    $licence.append(licence);
+  
+    $metadata.append($title).append($owner).append($link).append($licence);
+    $view.append($metadata);
 }
 
 //gets a link for an image when a range are available
@@ -432,16 +515,54 @@ function getLargestSize(image){
 }
 
 //create a licence redaction
-function selectNewLicence(){
+function selectNewLicence(licence){  
     
+    if (licence !== "Select a Licence"){
+    
+        var image = $view.data('image');
+
+        //store the required information to make a redaction of this type 
+        var oldImagePath = image.name + '.' + image.format;
+        var licenceRedaction = new LicenceRedaction(oldImagePath, licence);
+        $view.data('redaction', licenceRedaction);
+
+        //update GUI
+        updateGUI(licenceRedaction);    
+    }
+}
+function displayNewLicence(image, licence){
+    $view = clearView();
+    $view.addClass('new-licence-view');
+        
+    //show the old image
+    $image = $('<img></img>');   
+    $image.attr('src', image.link);
+    
+    //show the new licence
+    $licenceDiv = $('<div></div>');
+    $licenceDiv.addClass('new-licence');
+    $licenceTitle = $('<h4></h4>');
+    $licenceTitle.append('Licence added:');
+    $licenceVal = $('<h3></h3>');
+    $licenceVal.append(licence);
+    $licenceDiv.append($licenceTitle).append($licenceVal);    
+    $view.append($image).append($licenceDiv);     
 }
 
 //remove the redaction
 function cancelRedaction(){
+    console.log("hello there");
+    var redaction = $view.data('redaction');
     
     //if replace redaction and search already been done, go back to search results
-    
-    //otherwise just show image
+    if ((redaction.type === 'replace') && ($('#search-txt').val() !== '')){
+        //likely a search is taking place, go back to search results
+    }else{
+        //reset everything        
+        $view.data('redaction', null);
+        $('#licence-select').val("Select a Licence");
+        updateGUI(null);
+    }
     
 }
 
@@ -452,23 +573,48 @@ function saveImageRedaction(){
     var redaction = $view.data('redaction');
 
     //ping redaction off to the server
-    $.getJSON("../public_html/php/inputs/imageRedaction.php?callback=?",
-    {oldimage: redaction.oldImage, newimage: redaction.newImage, 
-        caption: redaction.caption, type: redaction.type},
-    function(res) {
-        handleResult(res[0], res[1]);
-    });
+    if (redaction.type === "replace") {
+        $.getJSON("../public_html/php/inputs/imageRedaction.php?callback=?",
+                {original: redaction.original, newimage: redaction.newimage, 
+                    licence: redaction.licence, caption: redaction.caption, 
+                    type: redaction.type, newtitle: redaction.newTitle,
+                    owner: redaction.owner, imageurl: redaction.imageUrl},
+        function(res) {
+            handleResult(res[0], res[1]);
+        });
+    }
+    
+    if (redaction.type === "licence") {
+        $.getJSON("../public_html/php/inputs/licenceRedaction.php?callback=?",
+                {original: redaction.original, licence: redaction.licence, 
+                    type: redaction.type},
+        function(res) {
+            handleResult(res[0], res[1]);
+        });
+    }  
 
 }
 
 /*
  * Javascript objects for storing information about the image's redaction
+ * An object for each equivalent in the PHP
  */
-function ReplaceRedaction(oldImage, newImage, caption) {
-    
+function ReplaceRedaction(original, newImage, licence, caption, newTitle, owner, imageUrl) {    
     var self = this;
-    self.oldImage = oldImage;
-    self.newImage = newImage;
+    self.original = original;
+    self.newimage = newImage;
+    self.licence = licence;
     self.caption = caption;
     self.type = "replace";
+    
+    self.newTitle = newTitle;
+    self.owner = owner;
+    self.imageUrl = imageUrl;
+}
+
+function LicenceRedaction(original, licence) {    
+    var self = this;
+    self.original = original;
+    self.licence = licence;
+    self.type = "licence";
 }

@@ -57,7 +57,7 @@ class Redactor{
         //$redactions[] = $redaction1;
         //$redactions[] = $redaction2;
         //$redactions[] = $redaction3;
-        $writer = new WordWriter($this->doc, null, $redactions);        
+        //$writer = new WordWriter($this->doc, null, $redactions);        
         
         //construct the representation of the document that has been uploaded
         $this->returnState();        
@@ -133,7 +133,6 @@ class Redactor{
         $redactionJSON = $this->redactionsToJSON();
 
         $results = array($docJSON, $redactionJSON); 
-    
         //ping everything back to the main page so the user can start interacting with it
         echo $_GET['callback'] . '(' . json_encode($results) . ')';        
     }
