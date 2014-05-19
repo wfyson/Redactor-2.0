@@ -2,7 +2,7 @@
 
 class WordWriter extends OpenXmlWriter implements DocumentWriter
 {
-    public function __construct($document, $paraRedactions=null, $imageRedactions=null)
+    public function __construct($document, $imageRedactions=null, $paraRedactions=null)
     {   
         parent::__construct($document, $paraRedactions, $imageRedactions);
         
@@ -14,8 +14,7 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
                 $this->enactParaRedaction($redaction);
             }
         }  
-        
-        
+                
         if ($imageRedactions != null)
         {
             foreach($imageRedactions as $redaction)
@@ -24,6 +23,10 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
                 switch($type){
                     case 'replace':
                         $this->enactReplaceRedaction($redaction);
+                        break;
+                    case 'licence':
+                        $prefix = 'word/media/';
+                        $this->enactLicenceRedaction($redaction, $prefix);
                         break;
                 
             /*

@@ -23,10 +23,15 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
             foreach($redactions as $redaction)
             {
                 $type = $redaction->getType();
+                ChromePhp::log($type);
                 switch($type){
                     case 'replace':
                         $this->enactReplaceRedaction($redaction);
-                    break;
+                        break;
+                    case 'licence':
+                        $prefix = 'ppt/media/';
+                        $this->enactLicenceRedaction($redaction, $prefix);
+                        break;
             /*
              * more to follow here!!
              */               
@@ -44,6 +49,7 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
                       
         //and then add captions where appropriate...                
         $slideRels = $this->document->getImageRels($replaceRedaction->oldImageName);
+        
         
         //read through the slide files and see if the slide no corresponds with a key in the slideRels array
         //for each slide that is changed make a record of its name and the new xml
@@ -126,6 +132,7 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
                 $x = $off->getAttribute('x');
                 $y = $off->getAttribute('y');
                 
+                //get the size information
                 $extQuery = 'p:spPr/a:xfrm/a:ext';
                 $ext = $xpath->query($extQuery, $pic)->item(0);
                 $cx = $ext->getAttribute('cx');
@@ -178,11 +185,11 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
 
         $off = $doc->createElement("a:off");
         $off->setAttribute('x', $x);
-        $off->setAttribute('y', $y);
+        $off->setAttribute('y', $y + $cy);
 
         $ext = $doc->createElement("a:ext");
         $ext->setAttribute('cx', $cx);
-        $ext->setAttribute('cy', $cy);
+        $ext->setAttribute('cy', '246221');
 
         $prstGeom = $doc->createElement("a:prstGeom");
         $prstGeom->setAttribute('prst', "rect");

@@ -1,12 +1,17 @@
 
 //show the image ready for redaction
-function showImage(image){    
+function showImage(image, current, total){    
     
-    var document = $('#main').data('doc');         
+    var document = $('#main').data('doc');     
     var redaction = getRedaction(image);
     
-    //save a reference to the image
+    $view = clearView();
+    
+    //save a reference to the image and other info
     $view.data('image', image); 
+    $view.data('redaction', redaction);
+    $view.data('current', current);
+    $view.data('total', total);
     
     //setup the banner
     $banner = clearBanner();
@@ -34,7 +39,8 @@ function updateGUI(redaction){
 
     if (redaction === null){
         //overview
-        updateImageOverview("Redacting Image", false);
+        caption = "Redacting image " + $('#view').data('current') + " of " + $('#view').data('total');
+        updateImageOverview(caption, false);
         
         //view
         displayImage(image);
@@ -551,7 +557,7 @@ function displayNewLicence(image, licence){
 
 //remove the redaction
 function cancelRedaction(){
-    console.log("hello there");
+    
     var redaction = $view.data('redaction');
     
     //if replace redaction and search already been done, go back to search results
@@ -572,26 +578,40 @@ function saveImageRedaction(){
 
     var redaction = $view.data('redaction');
 
-    //ping redaction off to the server
-    if (redaction.type === "replace") {
-        $.getJSON("../public_html/php/inputs/imageRedaction.php?callback=?",
-                {original: redaction.original, newimage: redaction.newimage, 
-                    licence: redaction.licence, caption: redaction.caption, 
-                    type: redaction.type, newtitle: redaction.newTitle,
-                    owner: redaction.owner, imageurl: redaction.imageUrl},
+    if (redaction !== null) {
+        //ping redaction off to the server
+        if (redaction.type === "replace") {            
+            $.getJSON("../public_html/php/inputs/imageRedaction.php?callback=?",
+                    {original: redaction.original, newimage: redaction.newimage,
+                        licence: redaction.licence, caption: redaction.caption,
+                        type: redaction.type, newtitle: redaction.newTitle,
+                        owner: redaction.owner, imageurl: redaction.imageUrl},
+            function(res) {
+                handleResult(res[0], res[1]);
+            });
+        }
+
+        if (redaction.type === "licence") {
+            $.getJSON("../public_html/php/inputs/licenceRedaction.php?callback=?",
+                    {original: redaction.original, licence: redaction.licence,
+                        type: redaction.type},
+            function(res) {
+                handleResult(res[0], res[1]);
+            });
+        } 
+    }else{
+        //no redaction stored for this image any more so mirror this on the server
+        
+        //get old image
+        var oldImage = $view.data('image');
+        var oldImagePath = oldImage.name + '.' + oldImage.format;
+        
+        $.getJSON("../public_html/php/inputs/removeRedaction.php?callback=?",
+                {original: oldImagePath},
         function(res) {
             handleResult(res[0], res[1]);
         });
     }
-    
-    if (redaction.type === "licence") {
-        $.getJSON("../public_html/php/inputs/licenceRedaction.php?callback=?",
-                {original: redaction.original, licence: redaction.licence, 
-                    type: redaction.type},
-        function(res) {
-            handleResult(res[0], res[1]);
-        });
-    }  
 
 }
 

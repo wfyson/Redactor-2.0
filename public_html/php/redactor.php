@@ -51,13 +51,13 @@ class Redactor{
         }         
         
         //test the writer here   
-        //$redaction1 = new ReplaceRedaction('image13', 'http://farm1.staticflickr.com/41/105320039_7e4e6fd0a0_b.jpg', 'Northern Lights, CDN Aviator, Attribution-ShareAlike License');
+        //$redaction1 = new LicenceRedaction('image1.jpeg', 'CC-BY');
         //$redaction2 = new ParaRedaction(218);
         //$redaction3 = new ParaRedaction(219);
         //$redactions[] = $redaction1;
         //$redactions[] = $redaction2;
         //$redactions[] = $redaction3;
-        //$writer = new WordWriter($this->doc, null, $redactions);        
+        //$writer = new PowerPointWriter($this->doc, $redactions);        
         
         //construct the representation of the document that has been uploaded
         $this->returnState();        
@@ -153,11 +153,11 @@ class Redactor{
         ChromePhp::log($imageRedactions);
         //get appropriate write
         switch ($this->format) {
-            case ".pptx":                
-                $writer = new PowerPointWriter($this->doc, null, $imageRedactions); 
+            case ".pptx":                                
+                $writer = new PowerPointWriter($this->doc, $imageRedactions); 
             break;
             case ".docx":
-                $writer = new WordWriter($this->doc, $this->paraRedactions, $imageRedactions); 
+                $writer = new WordWriter($this->doc, $imageRedactions, $this->paraRedactions); 
             break;
         }       
         

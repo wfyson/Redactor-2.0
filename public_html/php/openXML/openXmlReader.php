@@ -37,7 +37,7 @@ abstract class OpenXmlReader
         //set up things for reading the file
         //create directory for images
         $id = session_id();
-        $this->imagePath = '../../sessions/' . $id . '/images/';
+        $this->imagePath = '../../sessions/' . $id . '/' . str_replace('.', '_', basename($file)) . '/images/';
         
         if (!file_exists($this->imagePath)) {
             mkdir($this->imagePath, 0777, true);

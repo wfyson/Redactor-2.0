@@ -17,7 +17,7 @@ interface MetadataReader
 }
 
 /*
- * EXIF reader
+ * EXIF reader - works with JPG, ...
  */
 class ExifReader implements MetadataReader{
     

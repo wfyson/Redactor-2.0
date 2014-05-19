@@ -10,7 +10,7 @@ session_start();
 
 $id = session_id();
 
-$path = '../../sessions/' . $id . '/';
+$path = '../../sessions/' . $id . '/' . str_replace('.', '_', $_REQUEST['name']) . '/';
 
 if(!isset($_REQUEST['name'])) throw new Exception('Name required');
 if(!preg_match('/^[-a-z0-9_][-a-z0-9_.]*$/i', $_REQUEST['name'])) throw new Exception('Name error');

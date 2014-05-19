@@ -6,17 +6,20 @@ session_start();
 
 $id = session_id();
 
-$path = '../../sessions/' . $id . '/';
+$url = $_GET['doc'];
+$filename = basename($url);
+
+$path = '../../sessions/' . $id . '/' . str_replace('.', '_', $filename) . '/';
+
+ChromePhp::log($path);
 
 if (!file_exists($path)) {
     mkdir($path, 0777, true);
 }
 
-$url = $_GET['doc'];
-
 $file = fopen($url,"rb");
 
-$filename = basename($url);
+
 $newfile = fopen($path . $filename, "wb");
 
 if ($newfile)

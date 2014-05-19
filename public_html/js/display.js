@@ -73,7 +73,10 @@ function initDisplay(){
     }
     
     //list the images    
-    document.images.forEach(newImage, $list);       
+    for(var i = 0; i < document.images.length; i++){
+        newImage(document.images[i], i, document.images.length);
+    }
+    
     $view.append($list);
     
     //show the main view
@@ -122,9 +125,10 @@ function newText($list){
 }
 
 //shows the images within the document so they can be selected for redaction
-function newImage(image){
+function newImage(image, i, total){
     
-    $item = $('<li></li>');
+    i = i + 1;
+    $item = $('<li></li>');    
     
     $imageBox = $('<div></div>');
     $imageBox.addClass('entry');
@@ -149,15 +153,20 @@ function newImage(image){
     }
       
     //needs some clicking functionality
-    $item.click(function(){
-        showImage(image);
+    $item.click({param1: i, param2: total}, function(event){
+        showImage(image, event.data.param1, event.data.param2);        
     });
 }
 
 function displayImageEntry(image){
     
     //background
-    $imageBox.addClass('bg-danger');
+    var copyright = ["CC0", "CC BY", "CC BY-SA", "CC BY-ND", "CC BY-NC", "CC BY-NC-SA", "CC BY-NC-ND"];        
+    if ($.inArray(image.copyright, copyright)){
+        $imageBox.addClass('bg-danger');
+    }else{
+        $imageBox.addClass('bg-success');
+    }
     
     //add the image
     $imgPrev = $('<div></div>');

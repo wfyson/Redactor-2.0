@@ -21,19 +21,31 @@ class RedactorImage{
     private $artist;
     private $copyright;
     
+    private $exifTypes = array("jpg", "JPG", "jpeg", "JPEG");
+    
     public function __construct($url){
         
         $this->url = $url;
+        $metadataReader = null;
         
         //get the name and format of the image
         $split = explode('.', basename($url));
         $this->name = $split[0];
         $this->format = $split[1];        
         
-        //check image type here or in the metadata reader? TODO!!        
-        //$metadataReader = new ExifReader($url);
-        //$this->artist = $metadataReader->readField("artist"); 
-        //$this->copyright = $metadataReader->readField("copyright"); 
+        if (in_array($this->format, $this->exifTypes)){
+            $metadataReader = new ExifReader($url);
+        }
+        
+        if ($metadataReader !== null)
+        {
+           $this->artist = $metadataReader->readField("artist"); 
+           $this->copyright = $metadataReader->readField("copyright");  
+        }else{
+            //say metadata not readble
+            $this->artist = "Cannot read metadata"; 
+            $this->copyright = "Cannot read metadata";  
+        }
     }
     
     public function getName(){
