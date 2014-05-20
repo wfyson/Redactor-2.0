@@ -182,19 +182,19 @@ function displayImageEntry(image){
     $meta.addClass('meta');
     
     //name
-    $name = $('<span></span>');
+    $name = $('<div></div>');
     $nameLabel = $('<b>Title: </b>');  
     $name.append($nameLabel).append(image.name);
     $meta.append($name);
     
     //artist
-    $artist = $('<span></span>');
+    $artist = $('<div></div>');
     $artistLabel = $('<b>Artist: </b>');  
     $artist.append($artistLabel).append(image.artist);
     $meta.append($artist);
     
     //licence
-    $licence = $('<span></span>');
+    $licence = $('<div></div>');
     $licenceLabel = $('<b>Licence: </b>');  
     $licence.append($licenceLabel).append(image.copyright);
     $meta.append($licence);
@@ -229,19 +229,19 @@ function displayReplaceEntry(image, redaction){
     $meta.addClass('meta');
     
     //new title
-    $title = $('<span></span>');
+    $title = $('<div></div>');
     $titleLabel = $('<b>Title: </b>');  
     $title.append($titleLabel).append(redaction.newTitle);
     $meta.append($title);
     
     //new owner
-    $owner = $('<span></span>');
+    $owner = $('<div></div>');
     $ownerLabel = $('<b>Artist: </b>');  
     $owner.append($ownerLabel).append(redaction.owner);
     $meta.append($owner);
     
     //new licence
-    $licence = $('<span></span>');
+    $licence = $('<div></div>');
     $licenceLabel = $('<b>Licence: </b>');  
     $licence.append($licenceLabel).append(redaction.licence);
     $meta.append($licence);
@@ -271,7 +271,7 @@ function displayLicenceEntry(image, redaction){
     $meta.addClass('meta');
     
     //new licence
-    $licence = $('<span></span>');
+    $licence = $('<div></div>');
     $licenceLabel = $('<b>Added Licence: </b>');  
     $licence.append($licenceLabel).append(redaction.licence);
     $meta.append($licence);
@@ -307,7 +307,7 @@ function displayObscureEntry(image, redaction){
     $meta.addClass('meta');
     
     //new title
-    $title = $('<span></span>');
+    $title = $('<div></div>');
     $titleLabel = $('<b>Image Obscured</b>');  
     $title.append($titleLabel);
     $meta.append($title);

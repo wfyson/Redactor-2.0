@@ -69,12 +69,19 @@ body{
     padding-bottom: 15px;
     
     border-bottom-style: outset;
+    
+    display: table;
+    table-layout: fixed;
+}
+
+#banner > div {
+    display: table-cell;
 }
 
 #banner h3{
     margin-left: 20px;
     vertical-align: middle;
-    display: inline;
+    display: inline;    
 }
 
 #view{    
@@ -149,11 +156,15 @@ body{
 .meta{
     vertical-align: middle;
     display: inline-block; 
-    height: 100%;    
+    height: 100%;  
+    width: 200px;
 }
 
-.meta span{
+.meta div{
     display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /*
@@ -216,9 +227,26 @@ body{
     Image Redaction
 */
 
-#banner .cancel-btn{
-    float: right;
+#back-container{
+    width: 140px;
 }
+
+#overview-container{
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    word-break: break-all;
+    word-wrap: break-word;
+}
+
+#overview-container h3{
+    margin-left: 5px;
+}
+
+#cancel-container{
+    width: 80px;
+} 
+
 
 .image-sidebar .option-div{  
     padding-bottom: 20px;
@@ -256,6 +284,7 @@ body{
 
 .img-view .image-row{
     margin-bottom: 15px; 
+    min-height: 160px;
 }
 
 .img-view .search-prev{    
@@ -281,7 +310,7 @@ body{
 .img-view .control-row .results-progress{
     margin-left: auto;
     margin-right: auto;
-    width: 110px;
+    width: 200px;
 }
 
 .new-img-view img{

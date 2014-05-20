@@ -15,15 +15,22 @@ function showImage(image, current, total){
     
     //setup the banner
     $banner = clearBanner();
+    $backDiv = $('<div></div>');
+    $backDiv.attr('id', 'back-container');
     $backBtn = $('<button></button>');
     $backBtn.addClass('btn btn-default');
     $backBtn.append("Save and Return");
     $backBtn.click(function(){
        saveImageRedaction(); 
     });        
+    $backDiv.append($backBtn);
+        
+    $overviewDiv = $('<div></div>');
+    $overviewDiv.attr('id', 'overview-container');
     $overview = $('<h3></h3>');
     $overview.attr('id', 'image-overview');
-    $banner.append($backBtn).append($overview);
+    $overviewDiv.append($overview);
+    $banner.append($backDiv).append($overviewDiv);
     
     //update the GUI
     updateGUI(redaction);
@@ -87,10 +94,13 @@ function updateImageOverview(heading, cancel){
 
     //add cancel button
     if(cancel){
+        $cancelDiv = $('<div></div>');
+        $cancelDiv.attr('id', 'cancel-container');
         $cancelBtn = $('<button></button>');
         $cancelBtn.addClass('btn btn-danger cancel-btn');
         $cancelBtn.append("Cancel");
-        $('#banner').append($cancelBtn);     
+        $cancelDiv.append($cancelBtn);
+        $('#banner').append($cancelDiv);     
         $cancelBtn.click(function(){
            cancelRedaction(); 
         });
@@ -328,6 +338,9 @@ function setupObscure(image){
 
 //perform a search based on form input
 function imageSearch(engine, page){
+    //store view and enginge for future reference
+    $('#view').data('engine', engine);
+    $('#view').data('page', page);
     
     //first check there are search terms entered!!
     var tags = $('#search-txt').val();    
@@ -452,9 +465,10 @@ function displaySearchResults(results, page, total, next, engine){
     if(!next){
         $nextBtn.addClass('disabled');
     }
-    
+    console.log(page);
     $nextBtn.click(function(){
         page = page + 1;
+        console.log(page);
         imageSearch(engine, page);
     });
     
@@ -505,17 +519,37 @@ function displayNewImage(newLink, title, owner, imageUrl, licence){
     //and display some metadata about it... (licence, link to the original, author, etc.)
     $metadata = $('<div></div>');
    
-    $title = $('<span></span>');
-    $title.append(title);
+    $title = $('<div></div>');
+    $titleLabel = $('<b></b>');
+    $titleLabel.append('Title: ');
+    $titleValue = $('<span></span>');
+    $titleValue.append(title);
+    $title.append($titleLabel).append($titleValue);
     
-    $owner = $('<span></span>');
-    $owner.append(owner);
+    $owner = $('<div></div>');
+    $ownerLabel = $('<b></b>');
+    $ownerLabel.append('Owner: ');
+    $ownerValue = $('<a></a>');
+    $ownerValue.attr('href', owner);
+    $ownerValue.attr('target', '_blank');
+    $ownerValue.append(owner);
+    $owner.append($ownerLabel).append($ownerValue);
     
-    $link = $('<span></span>');
-    $link.append(imageUrl);
+    $link = $('<div></div>');
+    $linkLabel = $('<b></b>');
+    $linkLabel.append('Url: ');
+    $linkValue = $('<a></a>');
+    $linkValue.attr('href', imageUrl);
+    $linkValue.attr('target', '_blank');
+    $linkValue.append(imageUrl);
+    $link.append($linkLabel).append($linkValue);
     
-    $licence = $('<span></span>');
-    $licence.append(licence);
+    $licence = $('<div></div>');
+    $licenceLabel = $('<b></b>');
+    $licenceLabel.append('Licence: ');
+    $licenceValue = $('<span></span>');
+    $licenceValue.append(licence);
+    $licence.append($licenceLabel).append($licenceValue);
   
     $metadata.append($title).append($owner).append($link).append($licence);
     $view.append($metadata);
@@ -601,19 +635,24 @@ function obscureImage(){
 
 //remove the redaction
 function cancelRedaction(){
-    
+    console.log("cancel");
     var redaction = $view.data('redaction');
     
     //if replace redaction and search already been done, go back to search results
     if ((redaction.type === 'replace') && ($('#search-txt').val() !== '')){
+        //reset redaction
+        $view.data('redaction', null);
         //likely a search is taking place, go back to search results
+        var engine = $('#view').data('engine');
+        var page = $('#view').data('page');
+        imageSearch(engine, page);  
+        
     }else{
         //reset everything        
         $view.data('redaction', null);
         $('#licence-select').val("Select a Licence");
         updateGUI(null);
-    }
-    
+    }    
 }
 
 function saveImageRedaction(){

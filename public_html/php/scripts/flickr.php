@@ -156,7 +156,7 @@ if ($rsp_obj['stat'] == 'ok'){
 	array_push($json["fail"], true);
 }
 
-
+ChromePhp::log($json);
 
 echo $_GET['callback'] . '(' . json_encode($json) . ')';
 
