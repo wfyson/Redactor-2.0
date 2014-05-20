@@ -84,23 +84,8 @@ abstract class OpenXmlWriter
          */
     }
     
-    /*
-     * Add licence to an image
-     */    
-    public function writeLicence($image, $licence)
-    {
-        //see PEL stuff from the old redactor??
-    }
-    
-    /*
-     * Obscure an image (although may actually want to do this in the JS!!)
-     */
-    public function obscureImage($image)
-    {
-        
-    }
-    
-    public function enactLicenceRedaction($redaction, $prefix)
+    //prefix specifies location of images for the document type
+    public function enactLicenceRedaction($redaction, $prefix=null)
     {
         //first create a copy of the image
         $copy = $this->copyImage($redaction->imageName);   
@@ -109,10 +94,8 @@ abstract class OpenXmlWriter
         
         //create a writer based on image format
         if (in_array($split[1], $this->exifTypes)){
-            $metadataWriter = new ExifWriter($copy, $redaction->licence);
-        }
-        
-        //$metadataWriter->writeField("copyright", $redaction->licence);
+            $metadataWriter = new ExifWriter($copy, $redaction->licence); //creating the writer, also writes the metadata - may want to searate these two processes later
+        }        
         
         //metadata written, now add it to the zip
         //open the zip archive ready to write
@@ -122,11 +105,22 @@ abstract class OpenXmlWriter
         
         //simply overwrite the old image with the new one                        
         $this->zipArchive->addFile($copy, $prefix . $redaction->imageName); 
-        $this->zipArchive->close();    
-        
-        
+        $this->zipArchive->close();                  
     }
     
+    public function enactObscureRedaction($redaction, $prefix=null)
+    {        
+        //open the zip archive ready to write
+        //create a zip object
+        $this->zipArchive = new ZipArchive();
+        $this->zipArchive->open($this->newPath);
+        
+        //simply overwrite the old image with the new one                        
+        $this->zipArchive->addFile('../../' . $redaction->newImage, $prefix . $redaction->oldImageName); 
+        $this->zipArchive->close();
+    }
+    
+    //makes a copy of the specified image so it can be altered in some manner
     public function copyImage($image){                
         $oldPath = '../../sessions/' . $this->id . '/' . str_replace('.', '_', basename($this->file)) . '/images/' . $image;        
         $split = explode('.', $image);      

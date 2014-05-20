@@ -43,7 +43,7 @@ function updateGUI(redaction){
         updateImageOverview(caption, false);
         
         //view
-        displayImage(image);
+        displayImage(image.link);
     }else{
         if(redaction.type === "replace"){
             //overview
@@ -51,7 +51,6 @@ function updateGUI(redaction){
             updateImageOverview(heading, true);           
             
             //view
-            console.log(redaction);
             displayNewImage(redaction.newimage, redaction.newTitle, redaction.owner, redaction.imageUrl, redaction.licence);            
         }
         
@@ -63,6 +62,15 @@ function updateGUI(redaction){
             //view
             displayNewLicence(image, redaction.licence);     
   
+        }
+        
+        if(redaction.type === "obscure"){
+            //overview
+            var heading = 'Image Obscured';
+            updateImageOverview(heading, true);           
+            
+            //dispaly the obscure dimages           
+            displayImage(redaction.newimage);      
         }
     }    
 }
@@ -89,12 +97,12 @@ function updateImageOverview(heading, cancel){
     }
 }
 
-function displayImage(image){
+function displayImage(link){
     $view = clearView();
     $view.addClass("img-view");             
     
     $image = $('<img></img>');
-    $image.attr('src', image.link);
+    $image.attr('src', link);
     
     $view.append($image);    
 }
@@ -246,11 +254,11 @@ function setupLicence(image){
     $licenceHelp.addClass("glyphicon glyphicon-question-sign");
     $licenceHelp.attr('data-toggle', 'tooltip');
     $licenceHelp.attr('data-placement', 'right');
-    $licenceHelp.attr('title', 'Choose a Creative Commons licence to apply to the image.');
-    $licenceHelp.tooltip();
+    $licenceHelp.attr('title', 'Choose a Creative Commons licence to apply to the image.');    
     
     $licenceTitle.append($licenceHeading).append($licenceHelp);
     
+    $fieldset = $('<fieldset></fieldset');    
     $licenceSelect = $('<select></select>');
     $licenceSelect.attr('id', 'licence-select');
     $licenceSelect.addClass('form-control');
@@ -263,9 +271,21 @@ function setupLicence(image){
     $licenceSelect.change(function(){
         selectNewLicence($(this).val());
     });
+    $fieldset.append($licenceSelect);
                 
+    //disable and change text if appropriate
+    var writerFormats = ["JPG", "jpg", "JPEG", "jpeg"];
+    if ($.inArray(image.format, writerFormats) === -1){
+        $licenceHelp.attr('title', 'Writing licence metadata is unavailable for this image');
+        $fieldset.attr('disabled', true);
+    }
+    
+    //activsate tooltip
+    $licenceHelp.tooltip();
+               
+    //construct section
     $licence.append($licenceTitle);
-    $licence.append($licenceSelect);
+    $licence.append($fieldset);
     
     return $licence;
 }
@@ -295,6 +315,10 @@ function setupObscure(image){
     $obscureBtn.addClass('btn btn-default');
     $obscureBtn.attr('type', 'button');
     $obscureBtn.append("Obscure");
+    
+    $obscureBtn.click(function(){
+       obscureImage();
+    });
     
     $obscure.append($obscureTitle);
     $obscure.append($obscureBtn);
@@ -555,6 +579,26 @@ function displayNewLicence(image, licence){
     $view.append($image).append($licenceDiv);     
 }
 
+//create pixelated image
+function obscureImage(){
+    
+    //get image url
+    var image = $('#view').data('image');
+
+    //ping search request off to the server
+    $.getJSON('../public_html/php/scripts/pixelate.php?callback=?', {image: image.link},
+        function(res) {
+            
+            //save the redaction
+            var oldImagePath = image.name + '.' + image.format;
+            var obscureRedaction = new ObscureRedaction(oldImagePath, res);
+            $view.data('redaction', obscureRedaction);            
+            
+            //display the result
+            updateGUI(obscureRedaction);
+        });    
+}
+
 //remove the redaction
 function cancelRedaction(){
     
@@ -599,6 +643,15 @@ function saveImageRedaction(){
                 handleResult(res[0], res[1]);
             });
         } 
+        
+        if (redaction.type === "obscure") {
+            $.getJSON("../public_html/php/inputs/obscureRedaction.php?callback=?",
+                    {original: redaction.original, newimage: redaction.newimage,
+                        type: redaction.type},
+            function(res) {
+                handleResult(res[0], res[1]);
+            });
+        } 
     }else{
         //no redaction stored for this image any more so mirror this on the server
         
@@ -637,4 +690,11 @@ function LicenceRedaction(original, licence) {
     self.original = original;
     self.licence = licence;
     self.type = "licence";
+}
+
+function ObscureRedaction(original, newImage){
+    var self = this;
+    self.original = original;
+    self.newimage = newImage;
+    self.type = "obscure";
 }

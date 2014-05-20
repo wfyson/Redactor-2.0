@@ -93,11 +93,12 @@ class LicenceRedaction implements Redaction
  */
 class ObscureRedaction implements Redaction
 {
-    public $imageName;
+    public $oldImageName, $newImage;
     
-    public function __construct($imageName)
+    public function __construct($oldImageName, $newImage)
     {
-        $this->imageName = $imageName;
+        $this->oldImageName = $oldImageName;
+        $this->newImage = $newImage;
     }
     
     public function getType()
@@ -106,7 +107,13 @@ class ObscureRedaction implements Redaction
     }   
     
     public function generateJSON(){
+        $json = array();
         
+        $json['original'] = $this->oldImageName;
+        $json['newimage'] = $this->newImage;
+        $json['type'] = 'obscure';
+        
+        return $json;
     }
 }
 

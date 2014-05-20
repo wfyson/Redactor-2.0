@@ -32,6 +32,10 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
                         $prefix = 'ppt/media/';
                         $this->enactLicenceRedaction($redaction, $prefix);
                         break;
+                    case 'obscure':
+                        $prefix = 'ppt/media/';
+                        $this->enactObscureRedaction($redaction, $prefix);
+                        break;
             /*
              * more to follow here!!
              */               

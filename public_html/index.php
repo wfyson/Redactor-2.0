@@ -74,7 +74,10 @@
 
         <script>
 
-            window.onload = function() {
+            window.onload = function() {                
+                
+                var session = '<?php session_start();
+                    $id = session_id(); echo $id ?>';
                 
                 var doc = '<?php echo $_GET['doc'] ?>';
                 if (doc !== ''){
@@ -89,8 +92,13 @@
                     dropZone.addEventListener('dragover', handleDragOver, false);
                     dropZone.addEventListener('drop', handleFileDrop, false);
                 }
-            };
 
+                $(window).on('beforeunload', function() {
+                    var phpUrl = "php/scripts/endsession.php";
+                    $.get(phpUrl);                    
+                });
+                
+            };                       
         </script>
 
     </body>

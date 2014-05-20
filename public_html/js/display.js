@@ -146,7 +146,9 @@ function newImage(image, i, total){
                 break;
             case "licence":
                 displayLicenceEntry(image, redaction);
-                break;                
+                break;
+            case "obscure":
+                displayObscureEntry(image, redaction);
         }
     }else{
         displayImageEntry(image);
@@ -276,6 +278,43 @@ function displayLicenceEntry(image, redaction){
     
     //construct the entry
     $imageBox.append($imgPrev);
+    $imageBox.append($meta);    
+    $item.append($imageBox);
+    $list.append($item);
+    
+}
+
+function displayObscureEntry(image, redaction){
+    //background
+    $imageBox.addClass('bg-success');
+    
+    //add the old image
+    $imgPrev = $('<div></div>');
+    $imgPrev.addClass('img-preview');
+    $img = $('<img></img>');
+    $img.attr('src', (image.link));
+    $imgPrev.append($img);
+  
+    //add the new image
+    $newImgPrev = $('<div></div>');
+    $newImgPrev.addClass('img-preview');
+    $newImg = $('<img></img>');
+    $newImg.attr('src', (redaction.newimage));
+    $newImgPrev.append($newImg);
+    
+    //add the metadata
+    $meta = $('<div></div>');
+    $meta.addClass('meta');
+    
+    //new title
+    $title = $('<span></span>');
+    $titleLabel = $('<b>Image Obscured</b>');  
+    $title.append($titleLabel);
+    $meta.append($title);
+
+    //construct the entry
+    $imageBox.append($imgPrev);
+    $imageBox.append($newImgPrev);
     $imageBox.append($meta);    
     $item.append($imageBox);
     $list.append($item);

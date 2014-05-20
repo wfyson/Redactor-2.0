@@ -142,3 +142,11 @@ function handleResult(document, redactions){
     $('#main').data("imageRedactions", redactions.imageRedactions);
     initDisplay();
 }
+
+ //$(window).on('beforeunload', function() {
+
+//    console.log("delete!!");
+  //              var phpUrl = "../public_html/php/scripts/endsession.php";
+    //            $.get(phpUrl);
+
+//            });

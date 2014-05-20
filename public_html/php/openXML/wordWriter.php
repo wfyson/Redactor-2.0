@@ -28,6 +28,10 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
                         $prefix = 'word/media/';
                         $this->enactLicenceRedaction($redaction, $prefix);
                         break;
+                    case 'obscure':
+                        $prefix = 'word/media/';
+                        $this->enactObscureRedaction($redaction, $prefix);
+                        break;
                 
             /*
              * more to follow here!!
