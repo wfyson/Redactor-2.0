@@ -23,13 +23,14 @@ interface DocumentReader
 
 abstract class OpenXmlReader
 {
+    protected $docName;
     protected $localPath;
     protected $file;
     protected $zip;
     protected $imageLinks = array();
     protected $imagePath;
     
-    public function __construct($file)
+    public function __construct($docName, $file)
     {
         ChromePhp::log("allons-y");
         ChromePhp::log($file);
@@ -37,12 +38,13 @@ abstract class OpenXmlReader
         //set up things for reading the file
         //create directory for images
         $id = session_id();
-        $this->imagePath = '../../sessions/' . $id . '/' . str_replace('.', '_', basename($file)) . '/images/';
+        $this->imagePath = '../../sessions/' . $id . '_' . str_replace('.', '_', basename($docName)) . '_images_';
         
         if (!file_exists($this->imagePath)) {
-            mkdir($this->imagePath, 0777, true);
+            //mkdir($this->imagePath, 0777, true);
         }
 
+        $this->docName = $docName;
         $this->file = $file;
     }    
     

@@ -2,9 +2,9 @@
 
 class WordWriter extends OpenXmlWriter implements DocumentWriter
 {
-    public function __construct($document, $imageRedactions=null, $paraRedactions=null)
+    public function __construct($docName, $document, $imageRedactions=null, $paraRedactions=null)
     {   
-        parent::__construct($document, $paraRedactions, $imageRedactions);
+        parent::__construct($docName, $document, $paraRedactions, $imageRedactions);
         
         //setup complete, loop through the redactions        
         if ($paraRedactions != null)

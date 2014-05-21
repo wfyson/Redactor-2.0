@@ -9,12 +9,12 @@ $id = session_id();
 $url = $_GET['doc'];
 $filename = basename($url);
 
-$path = '../../sessions/' . $id . '/' . str_replace('.', '_', $filename) . '/';
+$path = '../../sessions/' . $id . '_' . str_replace('.', '_', $filename) . '_';
 
 ChromePhp::log($path);
 
 if (!file_exists($path)) {
-    mkdir($path, 0777, true);
+    //mkdir($path, 0777, true);
 }
 
 $file = fopen($url,"rb");
@@ -31,8 +31,9 @@ if ($newfile)
     }
 }
 
+$docName = str_replace(' ', '_', basename($url));
 $target = $path . $filename;
 
 //initialize the redactor by passing it the filepath to the newly uploaded file
-$redactor = new Redactor($target);
+$redactor = new Redactor($docName, $target);
 ?>

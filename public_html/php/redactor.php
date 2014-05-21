@@ -29,22 +29,24 @@ class Redactor{
     private $filepath;
     private $format;    
     private $doc;
+    private $docName;
     private $redactions = array(); //a list of all the redactions to send to a writer
     private $paraRedactions = array(); //a list of all para related redactions
     private $imageRedactions = array(); //each image may only ever have one redaction associated with it... stored here!
     
-    public function __construct($filepath){           
+    public function __construct($docname, $filepath){  
+        $this->docName = $docname;
         $this->filepath = $filepath;
         //get the format of the uploaded file
-        $this->format = substr(basename($filepath), strpos(basename($filepath), '.'));                
+        $this->format = substr($filepath, strrpos($filepath, '.'));                
         switch ($this->format) {
             case ".pptx":                
-                $reader = new PowerPointReader($this->filepath);
+                $reader = new PowerPointReader($this->docName, $this->filepath);
                 $this->doc = $reader->readPowerPoint();
                 $this->initImageRedactionArray($this->doc->getRedactorImages());
             break;
             case ".docx":
-                $reader = new WordReader($this->filepath);
+                $reader = new WordReader($this->docName, $this->filepath);
                 $this->doc = $reader->readWord();
                 $this->initImageRedactionArray($this->doc->getRedactorImages());
             break;
@@ -61,6 +63,10 @@ class Redactor{
         
         //construct the representation of the document that has been uploaded
         $this->returnState();        
+    }
+    
+    public function getDocName(){
+        return $this->docName;
     }
     
     //creates an array where image redactions are stored
@@ -151,19 +157,24 @@ class Redactor{
             }
         }
         ChromePhp::log($imageRedactions);
-        //get appropriate write
+        //get appropriate writer
         switch ($this->format) {
             case ".pptx":                                
-                $writer = new PowerPointWriter($this->doc, $imageRedactions); 
+                $writer = new PowerPointWriter($this->docName, $this->doc, $imageRedactions); 
             break;
             case ".docx":
-                $writer = new WordWriter($this->doc, $imageRedactions, $this->paraRedactions); 
+                $writer = new WordWriter($this->docName, $this->doc, $imageRedactions, $this->paraRedactions); 
             break;
         }       
         
         //ping back a link to the newly redacted document
         $link = substr($writer->returnDownloadLink(), 6);
-        echo $_GET['callback'] . '(' . json_encode($link) . ')';   
+        
+        $split = explode('.', $this->docName);
+        $downloadName = $split[0] . '_redacted.' . $split[1];
+        $results = array($link, $downloadName);
+        
+        echo $_GET['callback'] . '(' . json_encode($results) . ')';   
     }
 }
 

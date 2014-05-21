@@ -450,7 +450,8 @@ function commitRedactions(){
         $overview.empty();
         
         $link = $('<a></a>');
-        $link.attr('href', res);
+        $link.attr('href', res[0]);
+        $link.attr('download', res[1]);
         $link.append("Click to download...");
 
         $overview.append($link);

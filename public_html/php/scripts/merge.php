@@ -10,7 +10,7 @@ session_start();
 
 $id = session_id();
 
-$path = '../../sessions/' . $id . '/' . str_replace('.', '_', $_REQUEST['name']) . '/';
+$path = '../../sessions/' . $id . '_' . str_replace('.', '_', $_REQUEST['name']) . '_';
 
 if(!isset($_REQUEST['name'])) throw new Exception('Name required');
 if(!preg_match('/^[-a-z0-9_][-a-z0-9_.]*$/i', $_REQUEST['name'])) throw new Exception('Name error');
@@ -31,7 +31,9 @@ for($i = 0; $i < $_REQUEST['index']; $i++) {
 
 fclose($dst);
 
+$docName = str_replace(' ', '_', basename($_REQUEST['name']));
+
 //initialize the redactor by passing it the filepath to the newly uploaded file
-$redactor = new Redactor($target);
+$redactor = new Redactor($docName, $target);
 
 ?>

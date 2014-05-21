@@ -24,7 +24,8 @@ interface DocumentWriter
 abstract class OpenXmlWriter
 {
     protected $id;
-    protected $file;    
+    protected $file;  
+    protected $docName;
     protected $document;
     protected $paraRedactions;
     protected $imageRedactions;
@@ -33,18 +34,19 @@ abstract class OpenXmlWriter
     
     protected $exifTypes = array("jpg", "JPG", "jpeg", "JPEG");
     
-    public function __construct($document, $paraRedactions=null, $imageRedactions=null)
+    public function __construct($docName, $document, $paraRedactions=null, $imageRedactions=null)
     {        
         $this->id = session_id();
+        $this->docName = $docName;
         $this->document = $document;
         $this->file = $this->document->getFilepath();        
         $this->paraRedactions = $paraRedactions;   
         $this->imageRedactions = $imageRedactions; 
         
         //make a copy of the original file so that we can alter it and send it back with a new name
-        $split = explode('.', basename($this->file));      
+        $split = explode('.', basename($this->docName));      
         $sessionDoc = $split[0] . '_' . $split[1];
-        $this->newPath = '../../sessions/' . $this->id . '/' . $sessionDoc . '/' . $split[0] . '_redacted.' . $split[1];             
+        $this->newPath = '../../sessions/' . $this->id . '_' . $sessionDoc . '_' . $split[0] . '_redacted.' . $split[1];             
         copy($this->file, $this->newPath);                            
         
         //now the specific implementations of the class loop through the redactions... (see the non-abstract classes)
@@ -69,7 +71,7 @@ abstract class OpenXmlWriter
         //get new image from its specified location and write to server        
         $split = explode('.', basename($oldImage));      
         $newName = $split[0] . '_new.' . $split[1];      
-        $tempPath = '../../sessions/' . $this->id . '/' . str_replace('.', '_', basename($this->file)) . '/images/' . $newName;
+        $tempPath = '../../sessions/' . $this->id . '_' . str_replace('.', '_', basename($this->docName)) . '_images_' . $newName;
         
         copy($webImage, $tempPath);
               
@@ -122,10 +124,10 @@ abstract class OpenXmlWriter
     
     //makes a copy of the specified image so it can be altered in some manner
     public function copyImage($image){                
-        $oldPath = '../../sessions/' . $this->id . '/' . str_replace('.', '_', basename($this->file)) . '/images/' . $image;        
+        $oldPath = '../../sessions/' . $this->id . '_' . str_replace('.', '_', basename($this->docName)) . '_images_' . $image;        
         $split = explode('.', $image);      
         $newName = $split[0] . '_new.' . $split[1];    
-        $newPath = '../../sessions/' . $this->id . '/' . str_replace('.', '_', basename($this->file)) . '/images/' . $newName;
+        $newPath = '../../sessions/' . $this->id . '_' . str_replace('.', '_', basename($this->docName)) . '_images_' . $newName;
         copy($oldPath, $newPath);
         
         return $newPath;

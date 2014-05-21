@@ -13,9 +13,9 @@
 
 class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
 {    
-    public function __construct($document, $redactions=null)
+    public function __construct($docName, $document, $redactions=null)
     {   
-        parent::__construct($document, $redactions);
+        parent::__construct($docName, $document, $redactions);
         
         //setup complete, loop through the redactions        
         if ($redactions != null)

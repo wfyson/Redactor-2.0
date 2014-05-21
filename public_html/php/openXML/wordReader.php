@@ -42,7 +42,7 @@ class WordReader extends OpenXmlReader
         }
         
         //construct and then return a word document - may want to insert a link to a preset thumbnail image
-        $word = new Word($this->imagePath, $this->file, "n/a",
+        $word = new Word($this->docName, $this->imagePath, $this->file, "n/a",
                 $this->imageLinks, $this->rels, $this->document);
         
         return $word;  

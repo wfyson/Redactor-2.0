@@ -23,14 +23,14 @@ class RedactorImage{
     
     private $exifTypes = array("jpg", "JPG", "jpeg", "JPEG");
     
-    public function __construct($url){
+    public function __construct($name, $url){
         
         $this->url = $url;
         $metadataReader = null;
         
         //get the name and format of the image
         $split = explode('.', basename($url));
-        $this->name = $split[0];
+        $this->name = $name;
         $this->format = $split[1];        
         
         if (in_array($this->format, $this->exifTypes)){
@@ -75,6 +75,7 @@ class RedactorImage{
  */
 abstract class OpenXmlDocument{
     
+    protected $docName;
     protected $localPath;   
     protected $filepath;
     protected $reader;
@@ -82,7 +83,9 @@ abstract class OpenXmlDocument{
     protected $imageLinks;
     protected $redactorImages = array();
     
-    public function __construct($localPath, $filepath, $thumbnailLink, $imageLinks){
+    public function __construct($docName, $localPath, $filepath, $thumbnailLink, $imageLinks){
+        
+        $this->docName = $docName;
         
         $this->localPath = $localPath;
         
@@ -93,9 +96,9 @@ abstract class OpenXmlDocument{
         $this->imageLinks = $imageLinks;
         
         //get redactor images
-        foreach ($this->imageLinks as $url)
+        foreach ($this->imageLinks as $name => $url)
         {
-            $redactorImage = new RedactorImage($url);
+            $redactorImage = new RedactorImage($name, $url);
             $this->redactorImages[] = $redactorImage;
         }   
     }  
@@ -119,11 +122,11 @@ class PowerPoint extends OpenXmlDocument{
     private $rels;
     private $slideHeight;
     
-    public function __construct($localPath, $filepath, $thumbnailLink, $imageLinks, $rels, $slideHeight)
+    public function __construct($docName, $localPath, $filepath, $thumbnailLink, $imageLinks, $rels, $slideHeight)
     {       
         //ChromePhp::log($rels);
         
-        parent::__construct($localPath, $filepath, $thumbnailLink, $imageLinks);       
+        parent::__construct($docName, $localPath, $filepath, $thumbnailLink, $imageLinks);       
         
         $this->rels = $rels;
         $this->slideHeight = $slideHeight;
@@ -137,7 +140,7 @@ class PowerPoint extends OpenXmlDocument{
         $json["type"] = "pptx";
         
         //title of presentation
-        $json["title"] = basename($this->filepath);
+        $json["title"] = $this->docName;
         
         //thumbnail
         $json["thumbnail"] = substr($this->thumbnailLink, 6);
@@ -169,11 +172,11 @@ class Word extends OpenXmlDocument
     private $document;
     private $rels;
     
-    public function __construct($localPath, $filepath, $thumbnailLink, $imageLinks, $rels, $document)
+    public function __construct($docName, $localPath, $filepath, $thumbnailLink, $imageLinks, $rels, $document)
     {               
         ChromePhp::log("wizard");
         
-        parent::__construct($localPath, $filepath, $thumbnailLink, $imageLinks);       
+        parent::__construct($docName, $localPath, $filepath, $thumbnailLink, $imageLinks);       
         
         $this->rels = $rels;
         $this->document = $document;
@@ -188,8 +191,8 @@ class Word extends OpenXmlDocument
         //type of document
         $json["type"] = "docx";                
         
-        //title of presentation
-        $json["title"] = basename($this->filepath);
+        //title of word doc
+        $json["title"] = $this->docName;
         
         //thumbnail
         $json["thumbnail"] = $this->thumbnailLink;

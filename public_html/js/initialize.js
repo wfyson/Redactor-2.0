@@ -36,8 +36,9 @@ function handleUrl(url){
     });
 
     //display the progress bar and remove the upload interface
-    $('#file-upload').fadeOut("slow");
-    $('#upload-progress').fadeIn("slow");
+    $('#file-upload').fadeOut("slow", function(){
+        $('#upload-progress').fadeIn("slow");
+    });
 }
 
 /*
@@ -57,9 +58,10 @@ function sendRequest(blob, fname) {
 
     if ($.inArray(format, compatible) !== -1) {
         //display the progress bar and remove the upload interface
-        $('#file-upload').fadeOut("slow");
-        $('#upload-progress').fadeIn("slow");
-
+        $('#file-upload').fadeOut("slow", function(){
+            $('#upload-progress').fadeIn("slow");
+        });
+        
         var start = 0;
         var end;
         var index = 0;
@@ -151,11 +153,3 @@ function handleResult(document, redactions){
     $('#main').data("imageRedactions", redactions.imageRedactions);
     initDisplay();
 }
-
- //$(window).on('beforeunload', function() {
-
-//    console.log("delete!!");
-  //              var phpUrl = "../public_html/php/scripts/endsession.php";
-    //            $.get(phpUrl);
-
-//            });

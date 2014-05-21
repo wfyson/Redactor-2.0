@@ -23,7 +23,9 @@ class PowerPointReader extends OpenXmlReader
             //for image files
             if (strpos($entryName, 'ppt/media/') !== FALSE)
             {                
-                $this->imageLinks[] = $this->readImage($entryName, $zipEntry);
+                $split = explode('.', basename($entryName));
+                ChromePhp::log($split);
+                $this->imageLinks[$split[0]] = $this->readImage($entryName, $zipEntry);
             }     
             
             //for thumbnail file
@@ -85,7 +87,7 @@ class PowerPointReader extends OpenXmlReader
         }          
         
         //construct and then return a powerpoint
-        $powerpoint = new PowerPoint($this->imagePath, $this->file, $this->thumbnail,
+        $powerpoint = new PowerPoint($this->docName, $this->imagePath, $this->file, $this->thumbnail,
                 $this->imageLinks, $this->relList, $this->slideHeight);
         
         return $powerpoint;        
