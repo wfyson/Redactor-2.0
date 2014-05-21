@@ -87,6 +87,7 @@ foreach($results as $result)
     $jsonPhoto["desc"] = "N/A";
     $jsonPhoto["url"] = $result->originalContextUrl;
     $jsonPhoto["owner"] = $result->visibleUrl;
+    $jsonPhoto["ownerUrl"] = $result->visibleUrl;
     $jsonPhoto["sizes"] = $jsonSizes;
     $jsonPhoto["licence"] = "CC Licence";
 

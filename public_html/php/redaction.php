@@ -19,9 +19,9 @@ interface Redaction
 class ReplaceRedaction implements Redaction
 {
             
-    public $oldImageName, $newImage, $licence, $caption, $newTitle, $owner, $imageUrl;
+    public $oldImageName, $newImage, $licence, $caption, $newTitle, $owner, $ownerUrl, $imageUrl;
                 
-    public function __construct($oldImageName, $newImage, $licence, $caption, $newTitle, $owner, $imageUrl)
+    public function __construct($oldImageName, $newImage, $licence, $caption, $newTitle, $owner, $ownerUrl, $imageUrl)
     {
         $this->oldImageName = $oldImageName;
         $this->newImage = $newImage;
@@ -30,6 +30,7 @@ class ReplaceRedaction implements Redaction
    
         $this->newTitle = $newTitle;
         $this->owner = $owner;
+        $this->ownerUrl = $ownerUrl;
         $this->imageUrl = $imageUrl;
     }
     
@@ -49,6 +50,7 @@ class ReplaceRedaction implements Redaction
         
         $json['newTitle'] = $this->newTitle;
         $json['owner'] = $this->owner;
+        $json['ownerUrl'] = $this->ownerUrl;
         $json['imageUrl'] = $this->imageUrl;
         
         return $json;

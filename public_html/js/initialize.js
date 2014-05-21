@@ -5,7 +5,7 @@
 function handleFileSelect(evt) {
     var files = evt.target.files; // FileList object
     for (var i = 0, f; f = files[i]; i++) {        
-        var name = f.name;
+        var name = f.name;        
         var newName = name.split(' ').join('_');        
         sendRequest(f, newName);
     }
@@ -34,10 +34,10 @@ function handleUrl(url){
     function(res) {
         handleResult(res[0], res[1]);
     });
-    
+
     //display the progress bar and remove the upload interface
-    $('#file_upload').fadeOut("slow");
-    $('#upload_progress').fadeIn("slow");    
+    $('#file-upload').fadeOut("slow");
+    $('#upload-progress').fadeIn("slow");
 }
 
 /*
@@ -50,31 +50,40 @@ var slices;
 var slices2;
 
 function sendRequest(blob, fname) {
-    
+
     //TODO: check filetype is appropriate before sending it to server
+    var format = fname.split('.')[1];
+    var compatible = ['pptx', 'docx'];
 
-    //display the progress bar and remove the upload interface
-    $('#file_upload').fadeOut("slow");
-    $('#upload_progress').fadeIn("slow");
+    if ($.inArray(format, compatible) !== -1) {
+        //display the progress bar and remove the upload interface
+        $('#file-upload').fadeOut("slow");
+        $('#upload-progress').fadeIn("slow");
 
-    var start = 0;
-    var end;
-    var index = 0;
+        var start = 0;
+        var end;
+        var index = 0;
 
-    // calculate the number of slices required
-    slices = Math.ceil(blob.size / BYTES_PER_CHUNK);
-    slices2 = slices;
+        // calculate the number of slices required
+        slices = Math.ceil(blob.size / BYTES_PER_CHUNK);
+        slices2 = slices;
 
-    while (start < blob.size) {
-        end = start + BYTES_PER_CHUNK;
-        if (end > blob.size) {
-            end = blob.size;
+        while (start < blob.size) {
+            end = start + BYTES_PER_CHUNK;
+            if (end > blob.size) {
+                end = blob.size;
+            }
+
+            uploadFile(blob, index, start, end, fname);
+
+            start = end;
+            index++;
         }
-
-        uploadFile(blob, index, start, end, fname);
-
-        start = end;
-        index++;
+    } else {
+        $('#file-upload').fadeOut("slow", function(){
+            $('#file-error').fadeIn("slow");
+        });
+        
     }
 }
 
@@ -122,7 +131,7 @@ function updateProgress(slices, totalSlices) {
 
     var cssPercentage = percentage + "%";
 
-    $('#upload_progress .progress-bar').css('width', cssPercentage);
+    $('#upload-progress .progress-bar').css('width', cssPercentage);
 }
 
 //reconstruct slices into original file

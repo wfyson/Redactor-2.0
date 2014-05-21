@@ -17,12 +17,13 @@ $caption = $_GET['caption'];
 
 $title = $_GET['newtitle'];
 $owner = $_GET['owner'];
+$ownerUrl = $_GET['ownerurl'];
 $imageUrl = $_GET['imageurl'];
 
 //remove the previous redaction associated with this image
 $redactor->removeImageRedaction($oldImage);
 
-$newRedaction = new ReplaceRedaction($oldImage, $newImage, $licence, $caption, $title, $owner, $imageUrl);
+$newRedaction = new ReplaceRedaction($oldImage, $newImage, $licence, $caption, $title, $owner, $ownerUrl, $imageUrl);
 
 //add the redaction to the redactor
 $redactor->addImageRedaction($oldImage, $newRedaction);

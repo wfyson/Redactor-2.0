@@ -11,6 +11,7 @@ include '../debug/ChromePhp.php';
 define("API_KEY", "7493f1b9adc9c0e8e55d5be46f60ddb7");
 define("INFO_CALL", "http://api.flickr.com/services/rest/?method=flickr.photos.getInfo&api_key=7493f1b9adc9c0e8e55d5be46f60ddb7&format=php_serial&photo_id=");
 define("SIZE_CALL", "http://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=7493f1b9adc9c0e8e55d5be46f60ddb7&format=php_serial&photo_id=");
+define("USER_CALL", "http://api.flickr.com/services/rest/?method=flickr.people.getInfo&api_key=7493f1b9adc9c0e8e55d5be46f60ddb7&format=php_serial&user_id=");
 
 //work out the licence
 $commercial = $_GET['com'];
@@ -45,7 +46,7 @@ $params = array(
 	'tags'          => $_GET['tags'],
         'tag_mode'      => 'all',
         'license'       => $licence,
-        'sort'          => 'date-posted-asc',
+        'sort'          => 'relevance',
         'per_page'      => '8', //$_POST['perpage']
         'page'          => $_GET['page'],
 	'format'	=> 'php_serial',
@@ -93,13 +94,20 @@ if ($rsp_obj['stat'] == 'ok'){
             $infoUrl = constant("INFO_CALL") . $photo[id];
             $infoResponse = file_get_contents($infoUrl);
             $infoObj = unserialize($infoResponse);
-            $photoInfo = $infoObj[photo];            
+            $photoInfo = $infoObj[photo];               
 
             //get urls to the photo
             $sizeUrl = constant("SIZE_CALL") . $photo[id];
             $sizeResponse = file_get_contents($sizeUrl);
             $sizeObj = unserialize($sizeResponse);
             $photoSize = $sizeObj[sizes];
+            
+            //get owner of the photo
+            $userId = $photoInfo[owner][nsid];
+            $userUrl = constant("USER_CALL") . $userId;
+            $userResponse = file_get_contents($userUrl);
+            $userObj = unserialize($userResponse);
+            $userUrl = $userObj[person][profileurl][_content];
             
             $jsonSizes = array();
             foreach($photoSize[size] as $size)
@@ -146,6 +154,7 @@ if ($rsp_obj['stat'] == 'ok'){
             $jsonPhoto["desc"] = $photoInfo[description][_content];
             $jsonPhoto["url"] = $photoInfo[urls][url][0][_content];
             $jsonPhoto["owner"] = $photoInfo[owner][username];
+            $jsonPhoto["ownerUrl"] = $userUrl;
             $jsonPhoto["sizes"] = $jsonSizes;
             $jsonPhoto["licence"] = $licenceStr;
             

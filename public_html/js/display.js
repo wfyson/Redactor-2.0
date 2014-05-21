@@ -43,23 +43,7 @@ function initDisplay(){
     
     //show basic sidebar information for the document
     $sidebar = clearSidebar();
-    //$sidebar = $('#sidebar');    
-    
-    //thumbnail
-    $thumbnail = $('<img></img>');
-    $thumbnail.addClass('img-thumbnail');
-    if (document.thumbnail === 'n/a'){
-        defaultThumbnail($thumbnail, document.type);
-    }else{
-        $thumbnail.attr('src', document.thumbnail);
-    }
-    $sidebar.append($thumbnail);    
-    
-    //name of document
-    $name = $('<h4></h4>');
-    $name.addClass('doc-title');
-    $name.append(document.title);
-    $sidebar.append($name);
+    $sidebar = initSidebar($sidebar, document, paraRedactions, imageRedactions);
     
     //show the main view
     $view = clearView();
@@ -84,6 +68,100 @@ function initDisplay(){
     
 }
 
+function initSidebar($sidebar, document, paraRedactions, imageRedactions){
+    
+    //thumbnail
+    $thumbnail = $('<img></img>');
+    $thumbnail.addClass('img-thumbnail');
+    if (document.thumbnail === 'n/a'){
+        defaultThumbnail($thumbnail, document.type);
+    }else{
+        $thumbnail.attr('src', document.thumbnail);
+    }
+    $sidebar.append($thumbnail);    
+    
+    //name of document
+    $name = $('<h4></h4>');
+    $name.addClass('doc-title');
+    $name.append(document.title);
+    $sidebar.append($name);
+    
+    //overview
+    $sidebarOverview = $('<div></div>');
+    $sidebarOverview.addClass('sidebar-overview');
+    
+    //text overview
+    if (document.type === "docx"){
+        $paraDiv = $('<div></div>');
+        $paraLabel = $('<h4></h4>');
+        $paraLabel.append("Text Redactions");
+        
+        var paraPercent = ((paraRedactions.length / document.doc.length) * 100).toFixed(2);        
+        $paraValue = $('<div></div>');
+        $paraValue.append(paraRedactions.length + " paragraphs redacted (" + paraPercent + "%)");
+        
+        $paraDiv.append($paraLabel).append($paraValue);
+        $sidebarOverview.append($paraDiv);
+    }
+    
+    //image overview
+    $imageDiv = $('<div></div>');
+    $imageDiv.addClass('image-overview');
+    $imageLabel = $('<h4></h4>');
+    $imageLabel.append("Image Redactions");
+    
+    console.log(imageRedactions);
+    
+    var replaceCount = 0;
+    var licenceCount = 0;
+    var obscureCount = 0;
+    for(var i = 0; i < imageRedactions.length; i++){
+        if (imageRedactions[i].type === "replace")
+            replaceCount++;
+        if (imageRedactions[i].type === "licence")
+            licenceCount++;
+        if (imageRedactions[i].type === "obscure")
+            obscureCount++;
+    }    
+    
+    var replacePercent = ((replaceCount / document.images.length) * 100).toFixed(2);
+    var licencePercent = ((licenceCount / document.images.length) * 100).toFixed(2);
+    var obscurePercent = ((obscureCount / document.images.length) * 100).toFixed(2);
+    
+    var replaceStr = " images replaced (";
+    var licenceStr = " images licensed (";
+    var obscureStr = " images obscured (";
+    
+    if (replaceCount === 1)
+        replaceStr = " image replaced (";
+    if (licenceCount === 1)
+        licenceStr = " image licenced (";
+    if (obscureCount === 1)
+        obscureStr = " image obscured (";
+    
+    $replaceValue = $('<div></div>');
+    $replaceValue.append(replaceCount + replaceStr + replacePercent + "%)");
+    $licenceValue = $('<div></div>');
+    $licenceValue.append(licenceCount + licenceStr + licencePercent + "%)");
+    $obscureValue = $('<div></div>');
+    $obscureValue.append(obscureCount + obscureStr + obscurePercent + "%)");
+    
+    var totalPercent = ((imageRedactions.length / document.images.length) * 100).toFixed(2);
+    $totalValue = $('<div><div>');
+    $totalValue.addClass("total-overview");
+    $totalValue.append(imageRedactions.length + '/' + document.images.length +
+            " total images redacted (" + totalPercent + "%)");
+    
+    $imageDiv.append($imageLabel).append($replaceValue).append($licenceValue)
+            .append($obscureValue).append($totalValue); 
+    $sidebarOverview.append($imageDiv);   
+    
+    $sidebar.append($sidebarOverview);
+
+    return $sidebar;
+}
+
+
 //shows a thumbnail based on doc type
 function defaultThumbnail($thumbnail, type){
     if(type === "docx"){
@@ -97,7 +175,7 @@ function newText($list){
     $item = $('<li></li>');
     
     $textBox = $('<div></div>');
-    $textBox.addClass('entry text-entry bg-info');
+    $textBox.addClass('entry text-entry alert alert-info');
     
     //add an icon
     $imgPrev = $('<div></div>');
@@ -138,7 +216,7 @@ function newImage(image, i, total){
     
     //apply background based on licence information
     if (redaction !== null){                        
-        $imageBox.addClass('bg-success');
+        $imageBox.addClass('alert alert-success');
         
         switch (redaction.type){
             case "replace":
@@ -163,11 +241,12 @@ function newImage(image, i, total){
 function displayImageEntry(image){
     
     //background
-    var copyright = ["CC0", "CC BY", "CC BY-SA", "CC BY-ND", "CC BY-NC", "CC BY-NC-SA", "CC BY-NC-ND"];        
+    var copyright = ["CC0", "CC BY", "CC BY-SA", "CC BY-ND", "CC BY-NC",
+        "CC BY-NC-SA", "CC BY-NC-ND"];        
     if ($.inArray(image.copyright, copyright)){
-        $imageBox.addClass('bg-danger');
+        $imageBox.addClass('alert alert-danger');
     }else{
-        $imageBox.addClass('bg-success');
+        $imageBox.addClass('alert alert-success');
     }
     
     //add the image
@@ -208,7 +287,7 @@ function displayImageEntry(image){
 
 function displayReplaceEntry(image, redaction){
     //background
-    $imageBox.addClass('bg-success');
+    $imageBox.addClass('alert alert-success');
     
     //add the old image
     $imgPrev = $('<div></div>');
@@ -257,7 +336,7 @@ function displayReplaceEntry(image, redaction){
 
 function displayLicenceEntry(image, redaction){
     //background
-    $imageBox.addClass('bg-success');
+    $imageBox.addClass('alert alert-success');
     
     //add the image
     $imgPrev = $('<div></div>');
@@ -286,7 +365,7 @@ function displayLicenceEntry(image, redaction){
 
 function displayObscureEntry(image, redaction){
     //background
-    $imageBox.addClass('bg-success');
+    $imageBox.addClass('alert alert-success');
     
     //add the old image
     $imgPrev = $('<div></div>');

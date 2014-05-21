@@ -58,7 +58,7 @@ function updateGUI(redaction){
             updateImageOverview(heading, true);           
             
             //view
-            displayNewImage(redaction.newimage, redaction.newTitle, redaction.owner, redaction.imageUrl, redaction.licence);            
+            displayNewImage(redaction.newimage, redaction.newTitle, redaction.ownerUrl, redaction.imageUrl, redaction.licence);            
         }
         
         if(redaction.type === "licence"){
@@ -119,6 +119,16 @@ function displayImage(link){
 
 //gui stuff
 function setupSidebar($sidebar, image){
+    
+    //help
+    $sidebarHelp = $('<span></span>');
+    $sidebarHelp.addClass("sidebar-help glyphicon glyphicon-question-sign");
+    $sidebarHelp.attr('data-toggle', 'tooltip');
+    $sidebarHelp.attr('data-placement', 'bottom');
+    $sidebarHelp.attr('title', 'Choose one of the 3 redaction options below, \n\
+        "Image Search", "Add CC Licence" or "Obscure Image".');
+    $sidebarHelp.tooltip();
+    $sidebar.append($sidebarHelp);
     
     //thumbnail
     $thumbnail = $('<img></img>');
@@ -316,8 +326,8 @@ function setupObscure(image){
     $obscureHelp.addClass("glyphicon glyphicon-question-sign");
     $obscureHelp.attr('data-toggle', 'tooltip');
     $obscureHelp.attr('data-placement', 'right');
-    $obscureHelp.attr('title', 'Trnasform the image to obscure its content.');
-    $obscureHelp.tooltip();
+    $obscureHelp.attr('title', 'Transform the image to obscure its content.');
+    
 
     $obscureTitle.append($obscureHeading).append($obscureHelp);
     
@@ -329,6 +339,16 @@ function setupObscure(image){
     $obscureBtn.click(function(){
        obscureImage();
     });
+    
+    //disable and change text if appropriate
+    var writerFormats = ["JPG", "jpg", "JPEG", "jpeg", "png", "PNG"];
+    if ($.inArray(image.format, writerFormats) === -1){
+        $obscureHelp.attr('title', 'This imaeg cannot be obscured');
+        $obscureBtn.addClass('disabled');
+    }
+    
+    //activate tooltip
+    $obscureHelp.tooltip();
     
     $obscure.append($obscureTitle);
     $obscure.append($obscureBtn);
@@ -499,13 +519,13 @@ function selectNewImage(image){
     var caption = image.title + ", " + image.owner + ", " + image.licence;
     
     //store the required information to make a redaction of this type 
-    var replaceRedaction = new ReplaceRedaction(oldImagePath, newLink, image.licence, caption, image.title, image.owner, image.url);    
+    var replaceRedaction = new ReplaceRedaction(oldImagePath, newLink, image.licence, caption, image.title, image.owner, image.ownerUrl, image.url);    
     $view.data('redaction', replaceRedaction);
     
     //update the GUI
     updateGUI(replaceRedaction);    
 }
-function displayNewImage(newLink, title, owner, imageUrl, licence){
+function displayNewImage(newLink, title, ownerUrl, imageUrl, licence){
     
     //setup the view
     $view = clearView();    
@@ -530,9 +550,9 @@ function displayNewImage(newLink, title, owner, imageUrl, licence){
     $ownerLabel = $('<b></b>');
     $ownerLabel.append('Owner: ');
     $ownerValue = $('<a></a>');
-    $ownerValue.attr('href', owner);
+    $ownerValue.attr('href', ownerUrl);
     $ownerValue.attr('target', '_blank');
-    $ownerValue.append(owner);
+    $ownerValue.append(ownerUrl);
     $owner.append($ownerLabel).append($ownerValue);
     
     $link = $('<div></div>');
@@ -668,7 +688,8 @@ function saveImageRedaction(){
                     {original: redaction.original, newimage: redaction.newimage,
                         licence: redaction.licence, caption: redaction.caption,
                         type: redaction.type, newtitle: redaction.newTitle,
-                        owner: redaction.owner, imageurl: redaction.imageUrl},
+                        owner: redaction.owner, ownerurl: redaction.ownerUrl,
+                        imageurl: redaction.imageUrl},
             function(res) {
                 handleResult(res[0], res[1]);
             });
@@ -711,7 +732,7 @@ function saveImageRedaction(){
  * Javascript objects for storing information about the image's redaction
  * An object for each equivalent in the PHP
  */
-function ReplaceRedaction(original, newImage, licence, caption, newTitle, owner, imageUrl) {    
+function ReplaceRedaction(original, newImage, licence, caption, newTitle, owner, ownerUrl, imageUrl) {    
     var self = this;
     self.original = original;
     self.newimage = newImage;
@@ -721,6 +742,7 @@ function ReplaceRedaction(original, newImage, licence, caption, newTitle, owner,
     
     self.newTitle = newTitle;
     self.owner = owner;
+    self.ownerUrl = ownerUrl;
     self.imageUrl = imageUrl;
 }
 

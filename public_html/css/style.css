@@ -15,12 +15,12 @@ body{
     File Input 
 */
 
-#file_upload{
+#file-upload{
     margin-top: 20%;
     text-align: center;
 }
 
-#file_input{        
+#file-input{        
     margin-left: auto;
     margin-right: auto;
     width: 114px;   
@@ -28,7 +28,7 @@ body{
     position:relative;
 }
 
-#drop_zone{    
+#drop-zone{    
     margin-left: auto;
     margin-right: auto;
     width: 50%;   
@@ -38,7 +38,7 @@ body{
     text-align: center;
 }
 
-#drop_zone h3{
+#drop-zone h3{
     padding: 25px;
     
     /*Overide bootstrap*/
@@ -46,7 +46,7 @@ body{
     margin-bottom: 0;
 }
 
-#upload_progress{
+#upload-progress{
     margin-left: auto;
     margin-right: auto;
     width: 50%; 
@@ -54,6 +54,21 @@ body{
     margin-top: 30%;
     
     display: none;
+}
+
+#file-error{
+    display: none;
+    margin: 20% auto 0 auto;
+    width: 50%;    
+    text-align: center;
+}
+
+#file-error #file-btn{
+    text-align: center;
+}
+
+#file-error #file-alert{
+    margin: 15px auto 0 auto;
 }
 
 /*
@@ -120,6 +135,25 @@ body{
     text-align: center;
 }
 
+#sidebar .sidebar-overview{
+    margin-top: 25px;
+}
+
+#sidebar .sidebar-overview h4{
+    text-align: left;
+}
+
+#sidebar .sidebar-overview .image-overview{
+    margin-top: 25px;
+}
+
+#sidebar .sidebar-overview .image-overview .total-overview{
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: solid;
+    border-width: thin;
+}
+
 /*
     Redactable things
 */
@@ -132,10 +166,16 @@ body{
     cursor: pointer;
     
     display: block;
+    
+    color: black;
 }
 
 .text-entry{
     padding-left: 20px;
+}
+
+.text-entry .img-preview{
+    background: none;
 }
 
 .img-entry{
@@ -146,6 +186,7 @@ body{
     margin: 5px 10px 5px 5px;
     vertical-align: middle;
     display: inline-block;
+    background: white;    
 }
 
 .img-preview img{
@@ -276,6 +317,15 @@ body{
 .image-sidebar #loading{
     margin-left: 15px;
     display: none;
+}
+
+.image-sidebar .sidebar-help{
+    float:right;
+    margin: 5px 0 0;
+}
+
+.image-sidebar .tooltip{
+    position: fixed;
 }
 
 .img-view img{
