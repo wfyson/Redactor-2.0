@@ -120,15 +120,17 @@ abstract class OpenXmlDocument{
 class PowerPoint extends OpenXmlDocument{
     
     private $rels;
+    private $slideWidth;
     private $slideHeight;
     
-    public function __construct($docName, $localPath, $filepath, $thumbnailLink, $imageLinks, $rels, $slideHeight)
+    public function __construct($docName, $localPath, $filepath, $thumbnailLink, $imageLinks, $rels, $slideWidth, $slideHeight)
     {       
         //ChromePhp::log($rels);
         
         parent::__construct($docName, $localPath, $filepath, $thumbnailLink, $imageLinks);       
         
         $this->rels = $rels;
+        $this->slideWidth = $slideWidth;
         $this->slideHeight = $slideHeight;
     }       
     
@@ -160,6 +162,16 @@ class PowerPoint extends OpenXmlDocument{
     public function getImageRels($imageName)
     {
         return $this->rels[$imageName];
+    }
+    
+    public function getSlideWidth()
+    {
+        return $this->slideWidth;
+    }
+    
+    public function getSlideHeight()
+    {
+        return $this->slideHeight;
     }
         
 }

@@ -35,10 +35,7 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
                     case 'obscure':
                         $prefix = 'ppt/media/';
                         $this->enactObscureRedaction($redaction, $prefix);
-                        break;
-            /*
-             * more to follow here!!
-             */               
+                        break;           
                 }
             }
         }   
@@ -53,8 +50,7 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
                       
         //and then add captions where appropriate...                
         $slideRels = $this->document->getImageRels($replaceRedaction->oldImageName);
-        
-        
+               
         //read through the slide files and see if the slide no corresponds with a key in the slideRels array
         //for each slide that is changed make a record of its name and the new xml
         $newXml = array();
@@ -97,6 +93,8 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
      */    
     public function writeCaption($zipEntry, $slideRels, $caption)
     {  
+        ChromePhp::log($slideRels);
+                
         //read the xml        
         $slide = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
         $xml = simplexml_load_string($slide);      
@@ -112,55 +110,75 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
             }
         }
         
-        $relId = $slideRels->relId;
-        
-        $doc = new DOMDocument();
-        $doc->loadXML($slide);
-              
-        $xpath = new DOMXPath($doc);
-        $treeQuery = '//p:spTree';
-        $tree = $xpath->query($treeQuery)->item(0);
-        $picQuery = '//p:pic';
-        $pics = $xpath->query($picQuery);
-        foreach($pics as $pic)
-        {          
-            $blipQuery = 'p:blipFill/a:blip/@r:embed';
-            $blip = $xpath->query($blipQuery, $pic)->item(0);
-            if($blip->value == $relId)
-            {
-                $maxId++;
-                
-                //get the position information
-                $offQuery = 'p:spPr/a:xfrm/a:off';                
-                $off = $xpath->query($offQuery, $pic)->item(0);
-                $x = $off->getAttribute('x');
-                $y = $off->getAttribute('y');
-                
-                //get the size information
-                $extQuery = 'p:spPr/a:xfrm/a:ext';
-                $ext = $xpath->query($extQuery, $pic)->item(0);
-                $cx = $ext->getAttribute('cx');
-                $cy = $ext->getAttribute('cy');
-                
-                //create the text box with caption
-                $sp = $this->createCaption($doc, $maxId, $x, $y, $cx, $cy, $caption);
-                
-                //get sibling
-                $siblingQuery = 'following-sibling::*[1]';
-                $siblings = $xpath->query($siblingQuery, $pic);
+        //if there is a position then place the caption accordingly
+        if ($slideRels->positions->length > 0)
+        {            
+            $relId = $slideRels->relId;
 
-                if ($siblings->length > 0)
-                {
-                    $sibling = $siblings->item(0);
-                    $tree->insertBefore($sp, $sibling);
+            $doc = new DOMDocument();
+            $doc->loadXML($slide);
+
+            $xpath = new DOMXPath($doc);
+            $treeQuery = '//p:spTree';
+            $tree = $xpath->query($treeQuery)->item(0);
+            $picQuery = '//p:pic';
+            $pics = $xpath->query($picQuery);
+            foreach ($pics as $pic) {
+                $blipQuery = 'p:blipFill/a:blip/@r:embed';
+                $blip = $xpath->query($blipQuery, $pic)->item(0);
+                if ($blip->value == $relId) {
+                    $maxId++;
+
+                    //get the position information
+                    $offQuery = 'p:spPr/a:xfrm/a:off';
+                    $off = $xpath->query($offQuery, $pic)->item(0);
+                    $x = $off->getAttribute('x');
+                    $y = $off->getAttribute('y');
+
+                    //get the size information
+                    $extQuery = 'p:spPr/a:xfrm/a:ext';
+                    $ext = $xpath->query($extQuery, $pic)->item(0);
+                    $cx = $ext->getAttribute('cx');
+                    $cy = $ext->getAttribute('cy');
+
+                    //create the text box with caption
+                    $sp = $this->createCaption($doc, $maxId, $x, $y, $cx, $cy, $caption);
+
+                    //get sibling
+                    $siblingQuery = 'following-sibling::*[1]';
+                    $siblings = $xpath->query($siblingQuery, $pic);
+
+                    if ($siblings->length > 0) {
+                        $sibling = $siblings->item(0);
+                        $tree->insertBefore($sp, $sibling);
+                    } else {
+                        $tree->appendChild($sp);
+                    }
                 }
-                else
-                {
-                    $tree->appendChild($sp);
-                }  
             }
         }
-        
+        //no position information - so must be background picture so place the
+        //caption at the bottom of the slide
+        else
+        {
+            //get access to the slide's tree structure
+            $doc = new DOMDocument();
+            $doc->loadXML($slide);
+
+            $xpath = new DOMXPath($doc);
+            $treeQuery = '//p:spTree';
+            $tree = $xpath->query($treeQuery)->item(0);
+            
+            //create a caption
+            $x = 0;
+            $y = $this->document->getSlideHeight();
+            $cx = $this->document->getSlideWidth();
+            $cy = 0-246221;
+            $sp = $this->createCaption($doc, $maxId, $x, $y, $cx, $cy, $caption);
+            
+            $tree->appendChild($sp);
+        }
+
         //return the amended XML
         return $doc->saveXML();
     }

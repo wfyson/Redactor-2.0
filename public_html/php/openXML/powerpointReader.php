@@ -43,7 +43,9 @@ class PowerPointReader extends OpenXmlReader
             //to get the slide height
             if (strpos($entryName, 'ppt/presentation.xml') !== FALSE)
             {
-                $this->slideHeight = $this->readSlideHeight($zipEntry);
+                $size = $this->readSlideSize($zipEntry);
+                $this->slideWidth = $size[0];
+                $this->slideHeight = $size[1];
             }
             
             $zipEntry = zip_read($this->zip);
@@ -86,9 +88,11 @@ class PowerPointReader extends OpenXmlReader
             $zipEntry = zip_read($this->zip);
         }          
         
+        ChromePhp::log($this->relList);
+        
         //construct and then return a powerpoint
         $powerpoint = new PowerPoint($this->docName, $this->imagePath, $this->file, $this->thumbnail,
-                $this->imageLinks, $this->relList, $this->slideHeight);
+                $this->imageLinks, $this->relList, $this->slideWidth, $this->slideHeight);
         
         return $powerpoint;        
     }
@@ -100,9 +104,6 @@ class PowerPointReader extends OpenXmlReader
      */
     public function readSlideImageRels($relList, $entryName, $zipEntry)
     {
-        //ChromePhp::log("reading slide rels");
-        
-        
         //get the slide number        
         $slideFile = basename($entryName);
         $slideNo = substr($slideFile, 0, strpos($slideFile, '.'));
@@ -209,7 +210,7 @@ class PowerPointReader extends OpenXmlReader
     }
     
     //get the slideh height to position captions when background images are replaced
-    public function readSlideHeight($zipEntry)
+    public function readSlideSize($zipEntry)
     {        
         $ppt = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
         $xml = simplexml_load_string($ppt);
@@ -217,7 +218,11 @@ class PowerPointReader extends OpenXmlReader
         $presentation = $xml->xpath('//p:presentation');
         $sldSz = $presentation[0]->xpath('p:sldSz');
        
-        return (string)$sldSz[0]->attributes()->cy;      
+        $cx = (string)$sldSz[0]->attributes()->cx;      
+        $cy = (string)$sldSz[0]->attributes()->cy;      
+        $result = array($cx, $cy);
+        
+        return $result; 
     }        
 }
 
