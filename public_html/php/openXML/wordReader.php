@@ -23,7 +23,8 @@ class WordReader extends OpenXmlReader
             //for image files
             if (strpos($entryName, 'word/media/') !== FALSE)
             {                
-                $this->imageLinks[] = $this->readImage($entryName, $zipEntry);
+				$split = explode('.', basename($entryName));				
+                $this->imageLinks[$split[0]] = $this->readImage($entryName, $zipEntry);
             }                 
             
             //for image rels

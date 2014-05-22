@@ -4,14 +4,13 @@ include '../redactor.php';
 
 session_start();
 
+
 $id = session_id();
 
 $url = $_GET['doc'];
 $filename = basename($url);
 
 $path = '../../sessions/' . $id . '_' . str_replace('.', '_', $filename) . '_';
-
-ChromePhp::log($path);
 
 if (!file_exists($path)) {
     //mkdir($path, 0777, true);
@@ -36,4 +35,6 @@ $target = $path . $filename;
 
 //initialize the redactor by passing it the filepath to the newly uploaded file
 $redactor = new Redactor($docName, $target);
+
+
 ?>

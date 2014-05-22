@@ -379,10 +379,10 @@ function imageSearch(engine, page){
         var url;
         switch (engine) {
             case "flickr":
-                url = '../public_html/php/scripts/flickr.php?callback=?'
+                url = './php/scripts/flickr.php?callback=?'
                 break;
             case "google":
-                url = '../public_html/php/scripts/google.php?callback=?';
+                url = './php/scripts/google.php?callback=?';
                 break;
         }
         
@@ -640,7 +640,7 @@ function obscureImage(){
     var image = $('#view').data('image');
 
     //ping search request off to the server
-    $.getJSON('../public_html/php/scripts/pixelate.php?callback=?', {image: image.link},
+    $.getJSON('./php/scripts/pixelate.php?callback=?', {image: image.link},
         function(res) {
             
             //save the redaction
@@ -684,7 +684,7 @@ function saveImageRedaction(){
     if (redaction !== null) {
         //ping redaction off to the server
         if (redaction.type === "replace") {            
-            $.getJSON("../public_html/php/inputs/imageRedaction.php?callback=?",
+            $.getJSON("./php/inputs/imageRedaction.php?callback=?",
                     {original: redaction.original, newimage: redaction.newimage,
                         licence: redaction.licence, caption: redaction.caption,
                         type: redaction.type, newtitle: redaction.newTitle,
@@ -696,7 +696,7 @@ function saveImageRedaction(){
         }
 
         if (redaction.type === "licence") {
-            $.getJSON("../public_html/php/inputs/licenceRedaction.php?callback=?",
+            $.getJSON("./php/inputs/licenceRedaction.php?callback=?",
                     {original: redaction.original, licence: redaction.licence,
                         type: redaction.type},
             function(res) {
@@ -705,7 +705,7 @@ function saveImageRedaction(){
         } 
         
         if (redaction.type === "obscure") {
-            $.getJSON("../public_html/php/inputs/obscureRedaction.php?callback=?",
+            $.getJSON("./php/inputs/obscureRedaction.php?callback=?",
                     {original: redaction.original, newimage: redaction.newimage,
                         type: redaction.type},
             function(res) {
@@ -719,7 +719,7 @@ function saveImageRedaction(){
         var oldImage = $view.data('image');
         var oldImagePath = oldImage.name + '.' + oldImage.format;
         
-        $.getJSON("../public_html/php/inputs/removeRedaction.php?callback=?",
+        $.getJSON("./php/inputs/removeRedaction.php?callback=?",
                 {original: oldImagePath},
         function(res) {
             handleResult(res[0], res[1]);

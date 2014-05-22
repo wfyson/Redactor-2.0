@@ -35,7 +35,7 @@ class Redactor{
     private $imageRedactions = array(); //each image may only ever have one redaction associated with it... stored here!
     
     public function __construct($docname, $filepath){  
-        $this->docName = $docname;
+		$this->docName = $docname;
         $this->filepath = $filepath;
         //get the format of the uploaded file
         $this->format = substr($filepath, strrpos($filepath, '.'));                

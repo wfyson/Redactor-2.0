@@ -182,7 +182,7 @@ function saveRedactions(){
     });
     
     //ping list off to the server
-    $.getJSON("../public_html/php/inputs/paraRedaction.php?callback=?", {ids: redactIds},
+    $.getJSON("./php/inputs/paraRedaction.php?callback=?", {ids: redactIds},
     function(res) {
         handleResult(res[0], res[1]);
     });

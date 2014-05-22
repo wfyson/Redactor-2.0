@@ -30,7 +30,7 @@ function handleDragOver(evt) {
 
 function handleUrl(url){    
     //TODO - check the url is something we allow!!!
-    $.getJSON("../public_html/php/scripts/writeUrl.php?callback=?", {doc: url},
+    $.getJSON("./php/scripts/writeUrl.php?callback=?", {doc: url},
     function(res) {
         handleResult(res[0], res[1]);
     });
@@ -122,7 +122,7 @@ function uploadFile(blob, index, start, end, fname) {
     fd.append("name", fname);
     fd.append("index", index);
 
-    xhr.open("POST", "../public_html/php/scripts/writer.php", true);
+    xhr.open("POST", "./php/scripts/writer.php", true);
     xhr.send(fd);
 }
 
@@ -139,7 +139,7 @@ function updateProgress(slices, totalSlices) {
 //reconstruct slices into original file
 function mergeFile(fname) {
 
-    $.getJSON("../public_html/php/scripts/merge.php?callback=?", {name: fname, index: slices2},
+    $.getJSON("./php/scripts/merge.php?callback=?", {name: fname, index: slices2},
     function(res) {        
         handleResult(res[0], res[1]);
     });

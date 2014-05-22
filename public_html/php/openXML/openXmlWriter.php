@@ -71,12 +71,23 @@ abstract class OpenXmlWriter
         //get new image from its specified location and write to server        
         $split = explode('.', basename($oldImage));      
         $newName = $split[0] . '_new.' . $split[1];      
-        $tempPath = '../../sessions/' . $this->id . '_' . str_replace('.', '_', basename($this->docName)) . '_images_' . $newName;
-        
-        copy($webImage, $tempPath);
+        $tempPath = '../../sessions/' . $this->id . '_' . str_replace('.', '_', basename($this->docName)) . '_images_';
+
+        $url = $webImage;
+	$file = fopen($url,"rb");
+	$newfile = fopen($tempPath . $newName, "wb");
+
+	if ($newfile)
+	{
+            while (!feof($file))
+            {
+                // Write the url file to the directory.
+		fwrite($newfile, fread($file, 1024 * 8), 1024 * 8);
+            }
+	}
               
         //simply overwrite the old image with the new one                        
-        $this->zipArchive->addFile($tempPath, $oldImage);                
+        $this->zipArchive->addFile(($tempPath . $newName), $oldImage);                
         
         $this->zipArchive->close();        
         

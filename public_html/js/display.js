@@ -444,7 +444,7 @@ function clearView(){
 
 //ask the server to commit the redactions and present a link
 function commitRedactions(){
-    $.getJSON("../public_html/php/scripts/commit.php?callback=?",
+    $.getJSON("./php/scripts/commit.php?callback=?",
     function(res) {
         $overview = $('#overview');
         $overview.empty();
