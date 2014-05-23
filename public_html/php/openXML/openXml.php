@@ -186,8 +186,6 @@ class Word extends OpenXmlDocument
     
     public function __construct($docName, $localPath, $filepath, $thumbnailLink, $imageLinks, $rels, $document)
     {               
-        ChromePhp::log("wizard");
-        
         parent::__construct($docName, $localPath, $filepath, $thumbnailLink, $imageLinks);       
         
         $this->rels = $rels;
@@ -211,10 +209,11 @@ class Word extends OpenXmlDocument
         
         //text        
         $jsonDoc = array();
-        $root = $this->document;
+        $root = $this->document;        
         $paraArray = $root->getParaArray();
         foreach($paraArray as $para)
         {
+            //ChromePhp::log($para);
             $jsonArray = array();
             $type = $para->getType();                        
             $jsonArray["id"] = $para->getId();
@@ -233,6 +232,17 @@ class Word extends OpenXmlDocument
                     $relId = $para->getContent();
                     $jsonArray["image"] = $this->rels[$relId];
                     $jsonArray["link"] = substr(($this->localPath . $this->rels[$relId]), 6);
+                    
+                    $caption = $para->getCaption();
+                    if ($caption !== null)
+                    {
+                        $jsonArray["caption"] = $caption->getContent();
+                    }
+                    else
+                    {
+                        $jsonArray["caption"] = "";
+                    }
+                    
                     $jsonDoc[] = $jsonArray;
                 }
                 else
@@ -279,7 +289,7 @@ class SlideRel
     public function addPosition($position)
     {
         $this->positions[] = $position;
-    }
+    }    
 }
 
 class ImagePosition

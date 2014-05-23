@@ -43,6 +43,24 @@
 
                 <div id="drop-zone"><h3>Drop files here</h3></div>
                 <output id="list"></output>
+                
+                <div id="about" class="jumbotron">
+                    <h2 id="about-title">Redact the contents of a Word document (.docx) or PowerPoint presentation (.pptx)</h2>                    
+                    
+                    <p>This tool uses 
+                        <a class="external" href="http://search.creativecommons.org/" target="_blank" title="Creative Commons (CC) Search">CC Search</a> 
+                        to locate free-to-use, licensed alternatives for sensitive
+                        and/or copyright-infringing images. Replacement images are
+                        automatically downloaded and inserted into the supplied 
+                        <a title="Microsoft Word" class="external" href="http://en.wikipedia.org/wiki/Microsoft_Word" target="_blank">Word document</a>
+                        or 
+                        <a title="Microsoft PowerPoint" class="external" href="http://en.wikipedia.org/wiki/Microsoft_PowerPoint" target="_blank">PowerPoint presentation</a>
+                        (with a caption to provide an attribution.)</p>
+
+                    <p>This tool also embeds licence metadata in existing images, and obscures sensitive and/or copyright-infringing images for which no replacement is available.</p>                
+                               
+                </div>
+                
             </div>
 
             <div id="upload-progress" class="progress">

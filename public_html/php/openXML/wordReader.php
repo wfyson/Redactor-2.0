@@ -101,7 +101,6 @@ class WordReader extends OpenXmlReader
             $para = $paras[$i];
 
             $reading = $this->readPara($para, $currentHeading);
-
             if ($reading->getType() == "heading")
             {
                 $currentHeading = $reading->getParent();
@@ -109,7 +108,7 @@ class WordReader extends OpenXmlReader
             } else
             {
                 $currentHeading->addPara($reading);
-            }
+            }   
             $i++;
         }
 
@@ -118,9 +117,28 @@ class WordReader extends OpenXmlReader
     }
     
     public function readPara($para, $parent)
-    {
-        //check the style of the para
-        $style = $para[0]->xpath('w:pPr/w:pStyle');           
+    {        
+        //check if there is a picture
+        $wordImage = null;
+        $positioning = $para[0]->xpath('w:r/w:drawing/*');
+        if ($positioning[0] != null){
+            ChromePhp::log("picture found");
+            $positioning[0]->registerXPathNamespace('a', 'http://schemas.openxmlformats.org/drawingml/2006/main');
+            $graphicData = $positioning[0]->xpath('a:graphic/a:graphicData');
+            $graphicData[0]->registerXPathNamespace('pic', 'http://schemas.openxmlformats.org/drawingml/2006/picture');
+            $pic = $graphicData[0]->xpath('pic:pic');
+            if ($pic[0] != null) 
+            { 
+                    //get the rel id
+                    $relTag = $pic[0]->xpath('pic:blipFill/a:blip');
+                    $relID = $relTag[0]->xpath('@r:embed');  
+                    $this->id++;
+                    $wordImage = new WordImage($this->id, (string)$relID[0]);                                                   
+            }
+        }
+        
+        //check the style of the para 
+        $style = $para[0]->xpath('w:pPr/w:pStyle');   
         if ($style[0] != null) // a style is present
         {
             $val = $style[0]->xpath('@w:val');
@@ -163,37 +181,35 @@ class WordReader extends OpenXmlReader
             {
                 //return a caption thing
                 $text = $this->readParaText($para);
-                $wordCaption = new WordCaption($this->id, $text);
-                return $wordCaption;
+                
+                if ($wordImage !== null)
+                {
+                    $this->id = $this->id - 1;
+                    $wordCaption = new WordCaption($this->id, $text);
+                    $wordImage->addCaption($wordCaption);
+                    return $wordImage;
+                }
+                else
+                {
+                    $wordCaption = new WordCaption($this->id, $text);
+                    return $wordCaption;
+                }
             }  
             
             //style present but we're not interested
             $text = $this->readParaText($para);
             return $text;
         } 
-        
-        //check if there is a picture
-        $positioning = $para[0]->xpath('w:r/w:drawing/*');
-        if ($positioning[0] != null){
-            $positioning[0]->registerXPathNamespace('a', 'http://schemas.openxmlformats.org/drawingml/2006/main');
-            $graphicData = $positioning[0]->xpath('a:graphic/a:graphicData');
-            $graphicData[0]->registerXPathNamespace('pic', 'http://schemas.openxmlformats.org/drawingml/2006/picture');
-            $pic = $graphicData[0]->xpath('pic:pic');
-            if ($pic[0] != null) 
-            { 
-                    //get the rel id
-                    $relTag = $pic[0]->xpath('pic:blipFill/a:blip');
-                    $relID = $relTag[0]->xpath('@r:embed');  
-                    $this->id++;
-                    $wordImage = new WordImage($this->id, (string)$relID[0]);                    
-                    return $wordImage;                    
-              
-            }
+        if ($wordImage !== null)
+        {
+            return $wordImage;
+        }    
+        else
+        {
+            //else nothing interesting going on so just read text
+            $text = $this->readParaText($para);
+            return $text;
         }
-        
-        //else nothing interesting going on so just read text
-        $text = $this->readParaText($para);
-        return $text;        
     }
     
     public function readParaText($para)
@@ -255,11 +271,17 @@ class WordImage implements WordReadable
 {
     private $relID;
     private $id;
+    private $caption = null;
     
     public function __construct($id, $relID)
     {
         $this->id = $id;
         $this->relID = $relID;
+    }
+    
+    public function addCaption($caption)
+    {
+        $this->caption = $caption;
     }
     
     public function getId()
@@ -270,6 +292,10 @@ class WordImage implements WordReadable
     public function getType()
     {
         return "image";
+    }
+    
+    public function getCaption(){
+        return $this->caption;
     }
     
     public function getContent()

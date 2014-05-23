@@ -138,11 +138,10 @@ function updateProgress(slices, totalSlices) {
 
 //reconstruct slices into original file
 function mergeFile(fname) {
-
     $.getJSON("./php/scripts/merge.php?callback=?", {name: fname, index: slices2},
     function(res) {        
         handleResult(res[0], res[1]);
-    });
+    }).error(function(error){console.log(error);});
 
 }
 

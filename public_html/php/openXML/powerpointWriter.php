@@ -109,9 +109,8 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
                 $maxId = (int)$id;
             }
         }
-        
         //if there is a position then place the caption accordingly
-        if ($slideRels->positions->length > 0)
+        if (count($slideRels->positions) > 0)
         {            
             $relId = $slideRels->relId;
 

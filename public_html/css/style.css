@@ -4,6 +4,12 @@
     Author     : William Fyson    
 */
 
+a.external {
+   background: url(../img/external.png) center right no-repeat;
+   padding-right: 13px;
+}
+
+
 body{
     margin-left: auto;
     margin-right: auto;
@@ -44,6 +50,23 @@ body{
     /*Overide bootstrap*/
     margin-top: 0;
     margin-bottom: 0;
+}
+
+#about{
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;    
+    
+    background: none;
+}
+
+#about-title{
+    font-size: 26px;
+}
+
+#about p{
+    text-align: justify;
+    font-size: 16px;
 }
 
 #upload-progress{
@@ -102,11 +125,16 @@ body{
 #view{    
     padding: 0;
     
+    text-align:center;
     overflow: auto;
 }
 
 #view ul{
     list-style-type: none;
+}
+
+#view h3{
+    
 }
 
 #sidebar{
@@ -168,6 +196,7 @@ body{
     
     display: block;
     
+    text-align:left;
     color: black;
 }
 
@@ -212,6 +241,10 @@ body{
 /*
     Text redaction
 */
+
+#view.text-view{
+    text-align: justify;
+}
 
 .text-view .redact{
     color:red;

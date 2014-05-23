@@ -159,6 +159,13 @@ function addImage(image, $view){
     
     $para.append($img);
     
+    if (image.caption !== ''){
+        
+        $bold = $('<b></b>');
+        $bold.append(image.caption);    
+        $para.append('<br></br>').append($bold);
+    }
+    
     $check = makeCheckBox($imageDiv, image.id);
     $imageDiv.append($check);
     

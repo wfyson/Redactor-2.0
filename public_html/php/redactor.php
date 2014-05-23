@@ -62,6 +62,7 @@ class Redactor{
         //$writer = new PowerPointWriter($this->doc, $redactions);        
         
         //construct the representation of the document that has been uploaded
+        ChromePhp::log("returing");
         $this->returnState();        
     }
     

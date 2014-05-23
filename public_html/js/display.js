@@ -56,12 +56,19 @@ function initDisplay(){
         newText($list);        
     }
     
-    //list the images    
+    //list the images
     for(var i = 0; i < document.images.length; i++){
         newImage(document.images[i], i, document.images.length);
     }
     
     $view.append($list);
+    
+    //if there weren't any images, say that none were found
+    if (document.images.length === 0){
+        $noImages = $('<h3></h3>');
+        $noImages.append("No images found.");
+        $view.append($noImages);
+    }
     
     //show the main view
     $('#main').show();
@@ -104,58 +111,58 @@ function initSidebar($sidebar, document, paraRedactions, imageRedactions){
         $sidebarOverview.append($paraDiv);
     }
     
-    //image overview
-    $imageDiv = $('<div></div>');
-    $imageDiv.addClass('image-overview');
-    $imageLabel = $('<h4></h4>');
-    $imageLabel.append("Image Redactions");
+    if (document.images.length > 0){
     
-    console.log(imageRedactions);
-    
-    var replaceCount = 0;
-    var licenceCount = 0;
-    var obscureCount = 0;
-    for(var i = 0; i < imageRedactions.length; i++){
-        if (imageRedactions[i].type === "replace")
-            replaceCount++;
-        if (imageRedactions[i].type === "licence")
-            licenceCount++;
-        if (imageRedactions[i].type === "obscure")
-            obscureCount++;
-    }    
-    
-    var replacePercent = ((replaceCount / document.images.length) * 100).toFixed(2);
-    var licencePercent = ((licenceCount / document.images.length) * 100).toFixed(2);
-    var obscurePercent = ((obscureCount / document.images.length) * 100).toFixed(2);
-    
-    var replaceStr = " images replaced (";
-    var licenceStr = " images licensed (";
-    var obscureStr = " images obscured (";
-    
-    if (replaceCount === 1)
-        replaceStr = " image replaced (";
-    if (licenceCount === 1)
-        licenceStr = " image licenced (";
-    if (obscureCount === 1)
-        obscureStr = " image obscured (";
-    
-    $replaceValue = $('<div></div>');
-    $replaceValue.append(replaceCount + replaceStr + replacePercent + "%)");
-    $licenceValue = $('<div></div>');
-    $licenceValue.append(licenceCount + licenceStr + licencePercent + "%)");
-    $obscureValue = $('<div></div>');
-    $obscureValue.append(obscureCount + obscureStr + obscurePercent + "%)");
-    
-    var totalPercent = ((imageRedactions.length / document.images.length) * 100).toFixed(2);
-    $totalValue = $('<div><div>');
-    $totalValue.addClass("total-overview");
-    $totalValue.append(imageRedactions.length + '/' + document.images.length +
-            " total images redacted (" + totalPercent + "%)");
-    
-    $imageDiv.append($imageLabel).append($replaceValue).append($licenceValue)
-            .append($obscureValue).append($totalValue); 
-    $sidebarOverview.append($imageDiv);   
-    
+        //image overview
+        $imageDiv = $('<div></div>');
+        $imageDiv.addClass('image-overview');
+        $imageLabel = $('<h4></h4>');
+        $imageLabel.append("Image Redactions");
+
+        var replaceCount = 0;
+        var licenceCount = 0;
+        var obscureCount = 0;
+        for (var i = 0; i < imageRedactions.length; i++) {
+            if (imageRedactions[i].type === "replace")
+                replaceCount++;
+            if (imageRedactions[i].type === "licence")
+                licenceCount++;
+            if (imageRedactions[i].type === "obscure")
+                obscureCount++;
+        }
+
+        var replacePercent = ((replaceCount / document.images.length) * 100).toFixed(2);
+        var licencePercent = ((licenceCount / document.images.length) * 100).toFixed(2);
+        var obscurePercent = ((obscureCount / document.images.length) * 100).toFixed(2);
+
+        var replaceStr = " images replaced (";
+        var licenceStr = " images licensed (";
+        var obscureStr = " images obscured (";
+
+        if (replaceCount === 1)
+            replaceStr = " image replaced (";
+        if (licenceCount === 1)
+            licenceStr = " image licenced (";
+        if (obscureCount === 1)
+            obscureStr = " image obscured (";
+
+        $replaceValue = $('<div></div>');
+        $replaceValue.append(replaceCount + replaceStr + replacePercent + "%)");
+        $licenceValue = $('<div></div>');
+        $licenceValue.append(licenceCount + licenceStr + licencePercent + "%)");
+        $obscureValue = $('<div></div>');
+        $obscureValue.append(obscureCount + obscureStr + obscurePercent + "%)");
+
+        var totalPercent = ((imageRedactions.length / document.images.length) * 100).toFixed(2);
+        $totalValue = $('<div><div>');
+        $totalValue.addClass("total-overview");
+        $totalValue.append(imageRedactions.length + '/' + document.images.length +
+                " total images redacted (" + totalPercent + "%)");
+
+        $imageDiv.append($imageLabel).append($replaceValue).append($licenceValue)
+                .append($obscureValue).append($totalValue);
+        $sidebarOverview.append($imageDiv);   
+    }
     $sidebar.append($sidebarOverview);
 
     return $sidebar;

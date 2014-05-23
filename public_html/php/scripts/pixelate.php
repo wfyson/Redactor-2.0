@@ -47,7 +47,6 @@ for ($y = 0; $y < $height; $y += $pixelate_y + 1) {
     }
 }
 
-
 //write the file back again
 switch ($format) {
     case "jpeg":
@@ -60,7 +59,6 @@ switch ($format) {
         $img = imagepng($img, $newPath);
         break;
 }
-
 
 echo $_GET['callback'] . '(' . json_encode(substr($newPath, 6)) . ')';
 ?>
