@@ -551,6 +551,7 @@ function displayNewImage(newLink, title, ownerUrl, imageUrl, licence){
     $ownerLabel.append('Owner: ');
     $ownerValue = $('<a></a>');
     $ownerValue.attr('href', ownerUrl);
+    $ownerValue.addClass('external');
     $ownerValue.attr('target', '_blank');
     $ownerValue.append(ownerUrl);
     $owner.append($ownerLabel).append($ownerValue);
@@ -560,6 +561,7 @@ function displayNewImage(newLink, title, ownerUrl, imageUrl, licence){
     $linkLabel.append('Url: ');
     $linkValue = $('<a></a>');
     $linkValue.attr('href', imageUrl);
+    $linkValue.addClass('external');
     $linkValue.attr('target', '_blank');
     $linkValue.append(imageUrl);
     $link.append($linkLabel).append($linkValue);

@@ -92,7 +92,9 @@ class WordReader extends OpenXmlReader
         $root = new WordHeading($this->id, $rootPara, 0);
         $this->id++;
         
-        $paras = $xml->xpath('//w:p');
+        $body = $xml->xpath('/w:document/w:body');
+        
+        $paras = $body[0]->xpath('w:p | w:tbl');
         
         $i = 0;
         $currentHeading = $root;
@@ -100,18 +102,29 @@ class WordReader extends OpenXmlReader
         {                        
             $para = $paras[$i];
 
-            $reading = $this->readPara($para, $currentHeading);
-            if ($reading->getType() == "heading")
-            {
-                $currentHeading = $reading->getParent();
+            if ($para[0]->getName() == "p")
+            {     
+                $reading = $this->readPara($para, $currentHeading);
+                if ($reading->getType() == "heading")
+                {
+                    $currentHeading = $reading->getParent();
+                    $currentHeading->addPara($reading);
+                } 
+                else
+                {
                 $currentHeading->addPara($reading);
-            } else
+                }
+            }
+            else
             {
-                $currentHeading->addPara($reading);
-            }   
+                if ($para[0]->getName() == "tbl")
+                {
+                    $reading = $this->readTable($para);
+                    $currentHeading->addPara($reading);
+                }
+            }
             $i++;
         }
-
         ChromePhp::log("DONE!!!");
         return $root;
     }
@@ -119,23 +132,7 @@ class WordReader extends OpenXmlReader
     public function readPara($para, $parent)
     {        
         //check if there is a picture
-        $wordImage = null;
-        $positioning = $para[0]->xpath('w:r/w:drawing/*');
-        if ($positioning[0] != null){
-            ChromePhp::log("picture found");
-            $positioning[0]->registerXPathNamespace('a', 'http://schemas.openxmlformats.org/drawingml/2006/main');
-            $graphicData = $positioning[0]->xpath('a:graphic/a:graphicData');
-            $graphicData[0]->registerXPathNamespace('pic', 'http://schemas.openxmlformats.org/drawingml/2006/picture');
-            $pic = $graphicData[0]->xpath('pic:pic');
-            if ($pic[0] != null) 
-            { 
-                    //get the rel id
-                    $relTag = $pic[0]->xpath('pic:blipFill/a:blip');
-                    $relID = $relTag[0]->xpath('@r:embed');  
-                    $this->id++;
-                    $wordImage = new WordImage($this->id, (string)$relID[0]);                                                   
-            }
-        }
+        $wordImage = $this->readParaImage($para);
         
         //check the style of the para 
         $style = $para[0]->xpath('w:pPr/w:pStyle');   
@@ -212,6 +209,70 @@ class WordReader extends OpenXmlReader
         }
     }
     
+    public function readParaImage($para)
+    {
+        $wordImage = null;
+        $positioning = $para[0]->xpath('w:r/w:drawing/*');
+        if ($positioning[0] != null){
+            $positioning[0]->registerXPathNamespace('a', 'http://schemas.openxmlformats.org/drawingml/2006/main');
+            $graphicData = $positioning[0]->xpath('a:graphic/a:graphicData');
+            $graphicData[0]->registerXPathNamespace('pic', 'http://schemas.openxmlformats.org/drawingml/2006/picture');
+            $pic = $graphicData[0]->xpath('pic:pic');
+            if ($pic[0] != null) 
+            { 
+                    //get the rel id
+                    $relTag = $pic[0]->xpath('pic:blipFill/a:blip');
+                    $relID = $relTag[0]->xpath('@r:embed');  
+                    $this->id++;
+                    $wordImage = new WordImage($this->id, (string)$relID[0]);                                                   
+            }
+        }        
+        return $wordImage;
+    }
+    
+    public function readTable($table)
+    {        
+        //create a table object
+        $this->id++;
+        $wordTable = new WordTable($this->id);
+    
+        //cycle through each table row
+        $rows = $table[0]->xpath('w:tr');
+        foreach($rows as $row)
+        {
+            $this->id++;
+            $wordRow = new WordRow($this->id);           
+            
+            //get the cell for each row
+            $cells = $row[0]->xpath('w:tc');
+            foreach ($cells as $cell)
+            {                
+                $this->id++;
+                $wordCell = new WordCell($this->id);
+                
+                $paras = $cell[0]->xpath('w:p');                
+                foreach ($paras as $para)
+                {
+                    $wordImage = $this->readParaImage($para);
+                    if ($wordImage !== null)
+                    {
+                        $this->id--;
+                        $wordCell->addPara($wordImage);
+                    }
+                    else
+                    {                        
+                        $para = $this->readParaText($para); 
+                        $this->id--;
+                        $wordCell->addPara($para);
+                    }
+                }
+                $wordRow->addCell($wordCell);
+            }
+            $wordTable->addRow($wordRow);
+        }
+        return $wordTable;
+    }
+    
     public function readParaText($para)
     {
         $text = '';
@@ -220,7 +281,7 @@ class WordReader extends OpenXmlReader
             $text = $text . $wt[0];
         }
         $this->id++;
-        $result = new WordText($this->id, $text);        
+        $result = new WordText($this->id, $text);   
         return $result;
     }
 }
@@ -232,7 +293,7 @@ interface WordReadable
     
     public function getType();
     
-    public function getContent(); //a simple to return representation of the content
+    public function getContent(); //return representation of the content
 }
 
 class WordText implements WordReadable
@@ -390,6 +451,99 @@ class WordHeading implements WordReadable
     public function getContent()
     {        
         return $this->title->getText();
+    }
+}
+
+class WordTable implements WordReadable
+{
+    private $id;
+    private $rows = array();
+ 
+    public function __construct($id)
+    {
+        $this->id = $id;
+    }
+    
+    public function getId()
+    {
+        return $this->id;
+    }
+    
+    public function getType()
+    {
+        return "table";
+    }
+    
+    public function addRow($row)
+    {
+        $this->rows[] = $row;
+    }
+    
+    public function getContent()
+    {
+        return $this->rows;
+    }
+}
+
+class WordRow implements WordReadable
+{
+    private $id;
+    private $cells = array();
+ 
+    public function __construct($id)
+    {
+        $this->id = $id;
+    }
+    
+    public function getId()
+    {
+        return $this->id;
+    }
+    
+    public function getType()
+    {
+        return "row";
+    }
+    
+    public function addCell($cell)
+    {
+        $this->cells[] = $cell;
+    }
+    
+    public function getContent()
+    {
+        return $this->cells;
+    }
+}
+
+class WordCell implements WordReadable
+{
+    private $id;
+    private $paras = array();
+ 
+    public function __construct($id)
+    {
+        $this->id = $id;
+    }
+    
+    public function getId()
+    {
+        return $this->id;
+    }
+    
+    public function getType()
+    {
+        return "cell";
+    }
+    
+    public function addPara($text)
+    {
+        $this->paras[] = $text;
+    }
+    
+    public function getContent()
+    {
+        return $this->paras;
     }
 }
 

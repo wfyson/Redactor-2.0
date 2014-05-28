@@ -247,8 +247,50 @@ class Word extends OpenXmlDocument
                 }
                 else
                 {
-                    $jsonArray["text"] = $para->getContent();
-                    $jsonDoc[] = $jsonArray;
+                    if ($type == "table")
+                    {
+                        $jsonArray["rows"] = array();
+                        
+                        $rows = $para->getContent();
+                        foreach($rows as $row)
+                        {
+                            $jsonRow = array();
+                            $jsonRow["cells"] = array();                            
+                            $cells = $row->getContent();
+                            foreach($cells as $cell)
+                            {   
+                                $jsonCell = array();
+                                $jsonCell["id"] = $cell->getId();
+                                $jsonCell["paras"] = array();
+                                $paras = $cell->getContent();                                
+                                foreach($paras as $para)
+                                {
+                                    $jsonCellValue = array();                                                                        
+                                    if ($para->getType() === "image")
+                                    {
+                                        $relId = $para->getContent();
+                                        $jsonCellValue["type"] = "image";
+                                        $jsonCellValue["link"] = substr(($this->localPath . $this->rels[$relId]), 6);
+                                        array_push($jsonCell["paras"], $jsonCellValue);
+                                    }
+                                    else
+                                    {
+                                        $jsonCellValue["type"] = "text";
+                                        $jsonCellValue["text"] = $para->getContent();
+                                        array_push($jsonCell["paras"], $jsonCellValue);
+                                    }                                    
+                                }
+                                array_push($jsonRow["cells"], $jsonCell);
+                            }                            
+                            array_push($jsonArray["rows"], $jsonRow);                             
+                        }                                                                                                                    
+                        $jsonDoc[] = $jsonArray;
+                    }
+                    else
+                    {
+                        $jsonArray["text"] = $para->getContent();
+                        $jsonDoc[] = $jsonArray;
+                    }
                 }
             }            
         }

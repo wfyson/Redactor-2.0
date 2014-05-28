@@ -6,6 +6,8 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
     {   
         parent::__construct($docName, $document, $paraRedactions, $imageRedactions);
         
+        ChromePhp::log($paraRedactions);
+        
         //setup complete, loop through the redactions        
         if ($paraRedactions != null)
         {
@@ -157,6 +159,8 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
      */    
     public function enactParaRedaction($paraRedaction)
     {
+        ChromePhp::log("redacting Id..." . $paraRedaction->id); 
+        
         //need to read through all the paras
         $this->zip = zip_open($this->newPath);        
         $zipEntry = zip_read($this->zip);
@@ -181,6 +185,7 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
     
     public function redactPara($zipEntry, $id)
     {        
+        
         $currentId = 2;
         
         //read the xml        
@@ -188,58 +193,100 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
                 
         $dom = new DOMDocument();
         $dom->loadXML($doc);                    
-                        
+        
         $xpath = new DOMXPath($dom);
-        $wpQuery = '//w:p';
-        $wps = $xpath->query($wpQuery);
+        
+        $bodyQuery = '/w:document/w:body'; 
+        $body = $xpath->query($bodyQuery)->item(0);
+        //get the paragraphs and tables
+        $wpQuery = 'w:p | w:tbl';
+        $wps = $xpath->query($wpQuery, $body);
         foreach($wps as $wp)
         {      
-            //check if there is a picture
-            //get the picture position
-            $positionQuery = 'w:r/w:drawing/*';
-            $position = $xpath->query($positionQuery, $wp)->item(0);
+            //redact a p entry
+            if ($wp->nodeName === "w:p")
+            {    
+                //check if there is a picture
+                //get the picture position
+                $positionQuery = 'w:r/w:drawing/*';
+                $position = $xpath->query($positionQuery, $wp)->item(0);
 
-            if ($position != null) {
-                $graphicQuery = 'a:graphic/a:graphicData';
-                $xpath->registerNamespace('a', 'http://schemas.openxmlformats.org/drawingml/2006/main');
-                $graphic = $xpath->query($graphicQuery, $position)->item(0);
-                $picQuery = 'pic:pic';
-                $xpath->registerNamespace('pic', 'http://schemas.openxmlformats.org/drawingml/2006/picture');
-                $pic = $xpath->query($picQuery, $graphic)->item(0);
-                if ($pic != null) {
-                    $currentId++;                    
-                    if ($currentId == $id) {
-                        //first remove all children
-                        while ($wp->hasChildNodes())
-                        {
-                            $wp->removeChild($wp->firstChild);                                                                                
+                if ($position != null) {
+                    $graphicQuery = 'a:graphic/a:graphicData';
+                    $xpath->registerNamespace('a', 'http://schemas.openxmlformats.org/drawingml/2006/main');
+                    $graphic = $xpath->query($graphicQuery, $position)->item(0);
+                    $picQuery = 'pic:pic';
+                    $xpath->registerNamespace('pic', 'http://schemas.openxmlformats.org/drawingml/2006/picture');
+                    $pic = $xpath->query($picQuery, $graphic)->item(0);
+                    if ($pic != null) {
+                        $currentId++;
+                        if ($currentId == $id) {
+                            //first remove all children
+                            while ($wp->hasChildNodes()) {
+                                $wp->removeChild($wp->firstChild);
+                            }
+
+                            //add image redacted text
+                            $new = $this->createCaption($dom, "Image Redacted");
+                            $wp->appendChild($new);
+
+                            //return the amended XML
+                            return $dom->saveXML();
                         }
-                        
-                        //add image redacted text
-                        $new = $this->createCaption($dom, "Image Redacted");                            
-                        $wp->appendChild($new);    
-
-                        //return the amended XML
-                        return $dom->saveXML();
+                        continue;
                     }
-                    continue;
                 }
-            }
-            
-            //get the style
-            $styleQuery = 'w:pPr/w:pStyle/@w:val';
-            $style = $xpath->query($styleQuery, $wp)->item(0); 
 
-            if ($style != null) {
-                //check if header
-                if (strpos($style->value, 'Heading') === 0) {
+                //get the style
+                $styleQuery = 'w:pPr/w:pStyle/@w:val';
+                $style = $xpath->query($styleQuery, $wp)->item(0);
+
+                if ($style != null) {
+                    //check if header
+                    if (strpos($style->value, 'Heading') === 0) {
+                        $currentId++;
+
+                        if ($currentId == $id) {
+                            //change heading
+                            $wtQuery = 'descendant::w:t[1]';
+                            $wtFirst = $xpath->query($wtQuery, $wp)->item(0);
+                            $wtFirst->nodeValue = "Heading Redacted";
+                            $restQuery = 'descendant::w:t[position() > 1]';
+                            $wtRest = $xpath->query($restQuery, $wp);
+                            foreach ($wtRest as $wt) {
+                                $wt->nodeValue = "";
+                            }
+                            //return the amended XML
+                            return $dom->saveXML();
+                        }
+                        continue;
+                    }
+
+                    //check if caption
+                    if (strpos($style->value, 'Caption') === 0) {
+                        $currentId++;
+                        if ($currentId == $id) {
+                            //change caption
+                            $wtQuery = 'descendant::w:t[1]';
+                            $wtFirst = $xpath->query($wtQuery, $wp)->item(0);
+                            $wtFirst->nodeValue = "Caption Redacted";
+                            $restQuery = 'descendant::w:t[position() > 1]';
+                            $wtRest = $xpath->query($restQuery, $wp);
+                            foreach ($wtRest as $wt) {
+                                $wt->nodeValue = "";
+                            }
+                            //return the amended XML
+                            return $dom->saveXML();
+                        }
+                        continue;
+                    }
+
+                    //style present but not interested
                     $currentId++;
-                    
                     if ($currentId == $id) {
-                        //change heading
                         $wtQuery = 'descendant::w:t[1]';
                         $wtFirst = $xpath->query($wtQuery, $wp)->item(0);
-                        $wtFirst->nodeValue = "Heading Redacted";
+                        $wtFirst->nodeValue = "Paragraph Redacted";
                         $restQuery = 'descendant::w:t[position() > 1]';
                         $wtRest = $xpath->query($restQuery, $wp);
                         foreach ($wtRest as $wt) {
@@ -247,30 +294,12 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
                         }
                         //return the amended XML
                         return $dom->saveXML();
-                    }                 
-                    continue;
-                }
-                
-                //check if caption
-                if (strpos($style->value, 'Caption') === 0) {
-                    $currentId++;
-                    if ($currentId == $id) {
-                        //change caption
-                        $wtQuery = 'descendant::w:t[1]';
-                        $wtFirst = $xpath->query($wtQuery, $wp)->item(0);
-                        $wtFirst->nodeValue = "Caption Redacted";
-                        $restQuery = 'descendant::w:t[position() > 1]';
-                        $wtRest = $xpath->query($restQuery, $wp);
-                        foreach ($wtRest as $wt) {
-                            $wt->nodeValue = "";
-                        }
-                        //return the amended XML
-                        return $dom->saveXML();
                     }
                     continue;
                 }
-                
-                //style present but not interested
+
+                //no style present                   
+                //nothing of interest so simply deal with the normal paragraph
                 $currentId++;
                 if ($currentId == $id) {
                     $wtQuery = 'descendant::w:t[1]';
@@ -284,27 +313,52 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
                     //return the amended XML
                     return $dom->saveXML();
                 }
-                continue;
             }
-            
-            //no style present                   
-            //nothing of interest so simply deal with the notmal paragraph
-            $currentId++;
-            ChromePhp::log("normal");
-            ChromePhp::log($currentId);
-            if ($currentId == $id) {
-                $wtQuery = 'descendant::w:t[1]';
-                $wtFirst = $xpath->query($wtQuery, $wp)->item(0);
-                $wtFirst->nodeValue = "Paragraph Redacted";
-                $restQuery = 'descendant::w:t[position() > 1]';
-                $wtRest = $xpath->query($restQuery, $wp);
-                foreach ($wtRest as $wt) {
-                    $wt->nodeValue = "";
+            //redact a table entry
+            if ($wp->nodeName === "w:tbl")
+            {
+                ChromePhp::log("reading table");
+                $currentId++;
+                ChromePhp::log("table id..." . $currentId);
+                $rowQuery = 'w:tr';
+                $rows = $xpath->query($rowQuery, $wp);  
+                foreach($rows as $row)
+                {
+                    $currentId++;
+                    ChromePhp::log("redacting row id..." . $currentId);
+                    $cellQuery = 'w:tc';
+                    $cells = $xpath->query($cellQuery, $row);
+                    foreach($cells as $cell)
+                    {
+                        $currentId++;
+                        ChromePhp::log("redacting cell id..." . $currentId);
+                        if ($currentId == $id)
+                        {
+                            $cellWpQuery = 'w:p[1]';
+                            $firstWp = $xpath->query($cellWpQuery, $cell)->item(0);                           
+                            
+                            //remove all t from first wp
+                            //first remove all children
+                            while ($firstWp->hasChildNodes()) {
+                                $firstWp->removeChild($firstWp->firstChild);
+                            }
+                            //and add redaction text
+                            $new = $this->createCaption($dom, "Cell Redacted");
+                            $firstWp->appendChild($new);
+                           
+                            //remove remaining wps                            
+                            $restQuery = 'descendant::w:p[position() > 1]';
+                            $wpRest = $xpath->query($restQuery, $cell);
+                            foreach ($wpRest as $remainingWp) {
+                                $cell->removeChild($remainingWp);
+                            }
+                            //return the amended XML
+                            return $dom->saveXML();
+                        }                  
+                    }
                 }
-                //return the amended XML
-                return $dom->saveXML();
             }
-        }
+        }  
         //return the amended XML
         return $dom->saveXML();        
     }

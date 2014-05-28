@@ -54,12 +54,12 @@ class Redactor{
         
         //test the writer here   
         //$redaction1 = new LicenceRedaction('image1.jpeg', 'CC-BY');
-        //$redaction2 = new ParaRedaction(218);
+        //$redaction2 = new ParaRedaction(32);
         //$redaction3 = new ParaRedaction(219);
         //$redactions[] = $redaction1;
         //$redactions[] = $redaction2;
         //$redactions[] = $redaction3;
-        //$writer = new PowerPointWriter($this->doc, $redactions);        
+        //$writer = new WordWriter($this->doc, $redactions);        
         
         //construct the representation of the document that has been uploaded
         ChromePhp::log("returing");
@@ -157,7 +157,6 @@ class Redactor{
                 $imageRedactions[] = $redaction;
             }
         }
-        ChromePhp::log($imageRedactions);
         //get appropriate writer
         switch ($this->format) {
             case ".pptx":                                

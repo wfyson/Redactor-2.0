@@ -282,6 +282,32 @@ body{
     max-width: 100%;
 }
 
+.text-view div{
+    margin-bottom: 5px;
+}
+
+.text-view table{
+    margin-left: 5%;
+}
+
+.text-view td{
+    padding: 2px 2px 2px 2px;
+    border: thin solid black;    
+}
+
+.text-view td:hover{    
+    cursor: pointer;
+    background: #e1e1e8;
+} 
+
+.text-view td p{
+    border: none;
+}
+
+.text-view td.imagetd.redact{
+    background: #f2dede; /*bootstrap alert red*/
+}
+
 .text-sidebar{    
     padding-top: 5px;
 }

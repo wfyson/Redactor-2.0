@@ -47,6 +47,9 @@ function showText(){
             case "image":
                 addImage(text[i], $view);
                 break;
+            case "table":
+                addTable(text[i], $view);
+                break;
         }
     }      
     
@@ -55,7 +58,7 @@ function showText(){
         var redaction = redactions[i];
        
         if(redaction.type === "para"){
-            $checkbox = $('#check-' + redaction.value);
+            $checkbox = $('#item-' + redaction.value);
             $checkbox.click();
         } 
     }
@@ -66,12 +69,14 @@ function showText(){
 //takes an id so later we can see which paragraphs have been chosen for redaction
 function makeCheckBox($div, id){
     
+    //add id to div
+    $div.attr('data-id', id);
+    
     //make a check box
     $check = $('<input>');
-    $check.addClass('check');
-    $check.attr('id', 'check-' + id);
-    $check.attr('type', 'checkbox');
-    $check.attr('data-id', id);
+    $check.addClass('check redactable');
+    $check.attr('id', 'item-' + id);
+    $check.attr('type', 'checkbox');    
     $check.prop("checked", true);
     
     //apply some functionality
@@ -173,18 +178,74 @@ function addImage(image, $view){
     $view.append($imageDiv); 
 }
 
+function addTable(table, $view){
+    
+    console.log(table);
+    
+    $tableDiv = $('<div></div>');
+    $table = $('<table></table>');
+    
+    var rows = table.rows;
+    for (var i = 0; i < rows.length; i++){
+        var row = rows[i];
+        $tr = $('<tr></tr>');
+                
+        var cells = row.cells;
+        for (var j = 0; j < cells.length; j++){
+            var cell = cells[j];
+            $td = $('<td></td>');
+            $td.attr('id', ('item-' + cell.id));
+            $td.addClass('redactable');
+            $td.attr('data-id', cell.id);
+            var paras = cell.paras;
+            for(var k = 0; k < paras.length; k++){
+                var para = paras[k];
+                if(para.type === "text"){
+                    $p = $('<p></p>');
+                    $p.append(para.text);
+                    $td.append($p);
+                }else{
+                    $td.addClass('imagetd');
+                    $img = $('<img></img>');
+                    $img.attr('src', para.link);
+                    $td.append($img);
+                }                                
+            }
+            
+            //cell click fucntionality
+            $td.click(function(){
+                $this = $(this);
+                if($this.hasClass("redact")) {
+                    $this.removeClass("redact");         
+                }else{
+                    $this.addClass("redact");
+                }        
+                updateTextRedactions();                
+            });
+            
+            $tr.append($td);
+        }
+        $table.append($tr);
+    }
+    
+    $tableDiv.append($table);
+    $view.append($tableDiv);
+}
+
 /*
- * get all the check boxes which have been clicked and for eachget the id to
- * create a new paraRedaction in the PHP side of things
+ * get all the redactable elements that have been selected for each get the id 
+ * to create a new paraRedaction in the PHP side of things
  */ 
 function saveRedactions(){
     
-    //get the unticked boxes
-    $checked = $('.redact .check');    
+    //get the redacted items
+    $redacted = $('.redact');    
+    
+    console.log($redacted);
     
     //get a list  of the selected paras
     var redactIds = new Array();
-    $checked.each(function(){
+    $redacted.each(function(){
        redactIds.push($(this).data('id'));
     });
     
@@ -197,16 +258,16 @@ function saveRedactions(){
 
 function updateTextRedactions(){
     
-    $checkboxes = $('.check');
-    $checked = $('.redact .check');
+    $redactable = $('.redactable');
+    $redacted = $('.redact');
     
-    var percentage = (($checked.length / $checkboxes.length) * 100).toFixed(2);
+    var percentage = (($redacted.length / $redactable.length) * 100).toFixed(2);
     
     var redactText = " Redactions (";
-    if ($checked.length === 1)
+    if ($redacted.length === 1)
         redactText = " Redaction (";
     
-    var overview = $checked.length + redactText + percentage + "%)";   
+    var overview = $redacted.length + redactText + percentage + "%)";   
     $('#text-overview').empty();    
     $('#text-overview').append(overview);
 }
