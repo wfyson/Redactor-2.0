@@ -87,7 +87,7 @@
         
         <div id='main' class='row'>
             
-            <!-- BAnner controls -->
+            <!-- Banner controls -->
             <div id='banner' class="col-md-8">
                 
             </div>
@@ -107,10 +107,11 @@
 
         <script>
 
-            window.onload = function() {                
+            window.onload = function() {                           
                 
-                var session = '<?php session_start();
-                    $id = session_id(); echo $id ?>';
+                var session = '<?php session_start(); $id = session_id();
+                    $_SESSION['id'] = $id; echo $_SESSION['id'] ?>';
+                $('#view').attr('data-session', session);
                 
                 var doc = '<?php echo $_GET['doc'] ?>';
                 if (doc !== ''){

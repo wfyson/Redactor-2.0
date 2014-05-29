@@ -1,8 +1,6 @@
 <?php
 
-session_start();
-
-$id = session_id();
+$id = $_POST['id'];
 
 $path = '../../sessions/' . $id . '_' . str_replace('.', '_', $_REQUEST['name']) . '_';
 

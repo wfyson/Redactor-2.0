@@ -95,6 +95,7 @@ function uploadFile(blob, index, start, end, fname) {
     var fd;
     var chunk;
     var url;
+    var id;
 
     xhr = new XMLHttpRequest();
 
@@ -117,7 +118,10 @@ function uploadFile(blob, index, start, end, fname) {
 
     chunk = blob.slice(start, end);
 
+    id = $('#view').data('session');
+    
     fd = new FormData();
+    fd.append("id", id);
     fd.append("file", chunk);
     fd.append("name", fname);
     fd.append("index", index);
@@ -138,7 +142,8 @@ function updateProgress(slices, totalSlices) {
 
 //reconstruct slices into original file
 function mergeFile(fname) {
-    $.getJSON("./php/scripts/merge.php?callback=?", {name: fname, index: slices2},
+    var id = $('#view').data('session');
+    $.getJSON("./php/scripts/merge.php?callback=?", {id: id, name: fname, index: slices2},
     function(res) {        
         handleResult(res[0], res[1]);
     }).error(function(error){console.log(error);});

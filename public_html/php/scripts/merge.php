@@ -8,7 +8,7 @@ include '../redactor.php';
 
 session_start();
 
-$id = session_id();
+$id = $_GET['id'];
 
 $path = '../../sessions/' . $id . '_' . str_replace('.', '_', $_REQUEST['name']) . '_';
 
