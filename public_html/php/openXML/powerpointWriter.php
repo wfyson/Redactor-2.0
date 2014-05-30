@@ -23,7 +23,6 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
             foreach($redactions as $redaction)
             {
                 $type = $redaction->getType();
-                ChromePhp::log($type);
                 switch($type){
                     case 'replace':
                         $this->enactReplaceRedaction($redaction);
@@ -92,9 +91,7 @@ class PowerPointWriter extends OpenXmlWriter implements DocumentWriter
      * Add a caption to slide to attribute an image
      */    
     public function writeCaption($zipEntry, $slideRels, $caption)
-    {  
-        ChromePhp::log($slideRels);
-                
+    {                  
         //read the xml        
         $slide = zip_entry_read($zipEntry, zip_entry_filesize($zipEntry));
         $xml = simplexml_load_string($slide);      

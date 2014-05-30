@@ -9,7 +9,7 @@ function handleFileSelect(evt) {
         var newName = name.split(' ').join('_');        
         sendRequest(f, newName);
     }
-  }
+}
 
 function handleFileDrop(evt) {
     evt.stopPropagation();

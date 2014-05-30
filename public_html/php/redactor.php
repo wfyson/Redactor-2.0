@@ -166,14 +166,11 @@ class Redactor{
                 $writer = new WordWriter($this->docName, $this->doc, $imageRedactions, $this->paraRedactions); 
             break;
         }       
-        
         //ping back a link to the newly redacted document
         $link = substr($writer->returnDownloadLink(), 6);
-        
         $split = explode('.', $this->docName);
         $downloadName = $split[0] . '_redacted.' . $split[1];
         $results = array($link, $downloadName);
-        
         echo $_GET['callback'] . '(' . json_encode($results) . ')';   
     }
 }

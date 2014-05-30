@@ -6,8 +6,6 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
     {   
         parent::__construct($docName, $document, $paraRedactions, $imageRedactions);
         
-        ChromePhp::log($paraRedactions);
-        
         //setup complete, loop through the redactions        
         if ($paraRedactions != null)
         {
@@ -159,8 +157,6 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
      */    
     public function enactParaRedaction($paraRedaction)
     {
-        ChromePhp::log("redacting Id..." . $paraRedaction->id); 
-        
         //need to read through all the paras
         $this->zip = zip_open($this->newPath);        
         $zipEntry = zip_read($this->zip);
@@ -317,21 +313,17 @@ class WordWriter extends OpenXmlWriter implements DocumentWriter
             //redact a table entry
             if ($wp->nodeName === "w:tbl")
             {
-                ChromePhp::log("reading table");
                 $currentId++;
-                ChromePhp::log("table id..." . $currentId);
                 $rowQuery = 'w:tr';
                 $rows = $xpath->query($rowQuery, $wp);  
                 foreach($rows as $row)
                 {
                     $currentId++;
-                    ChromePhp::log("redacting row id..." . $currentId);
                     $cellQuery = 'w:tc';
                     $cells = $xpath->query($cellQuery, $row);
                     foreach($cells as $cell)
                     {
                         $currentId++;
-                        ChromePhp::log("redacting cell id..." . $currentId);
                         if ($currentId == $id)
                         {
                             $cellWpQuery = 'w:p[1]';

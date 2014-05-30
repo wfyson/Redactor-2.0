@@ -294,7 +294,7 @@ function setupLicence(image){
     $fieldset.append($licenceSelect);
                 
     //disable and change text if appropriate
-    var writerFormats = ["JPG", "jpg", "JPEG", "jpeg"];
+    var writerFormats = ["JPG", "jpg", "JPEG", "jpeg", "png", "PNG"];
     if ($.inArray(image.format, writerFormats) === -1){
         $licenceHelp.attr('title', 'Writing licence metadata is unavailable for this image');
         $fieldset.attr('disabled', true);

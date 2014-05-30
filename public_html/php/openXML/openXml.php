@@ -22,6 +22,7 @@ class RedactorImage{
     private $copyright;
     
     private $exifTypes = array("jpg", "JPG", "jpeg", "JPEG");
+    private $pngTypes = array("png", "PNG");
     
     public function __construct($name, $url){
         
@@ -33,10 +34,15 @@ class RedactorImage{
         $this->name = $name;
         $this->format = $split[1];        
         
-        if (in_array($this->format, $this->exifTypes)){
+        if (in_array($this->format, $this->exifTypes))
+        {
             $metadataReader = new ExifReader($url);
         }
         
+        if (in_array($this->format, $this->pngTypes))
+        {
+            $metadataReader = new PNGReader($url);
+        }
         if ($metadataReader !== null)
         {
            $this->artist = $metadataReader->readField("artist"); 

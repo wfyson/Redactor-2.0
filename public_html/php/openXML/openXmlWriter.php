@@ -33,6 +33,7 @@ abstract class OpenXmlWriter
     protected $zipArchive; //the zip we open and will make all changes to
     
     protected $exifTypes = array("jpg", "JPG", "jpeg", "JPEG");
+    protected $pngTypes = array("png", "PNG");
     
     public function __construct($docName, $document, $paraRedactions=null, $imageRedactions=null)
     {        
@@ -106,10 +107,16 @@ abstract class OpenXmlWriter
         $split = explode('.', basename($copy));
         
         //create a writer based on image format
-        if (in_array($split[1], $this->exifTypes)){
+        if (in_array($split[1], $this->exifTypes))
+        {
             $metadataWriter = new ExifWriter($copy, $redaction->licence); //creating the writer, also writes the metadata - may want to searate these two processes later
         }        
         
+        if (in_array($split[1], $this->pngTypes))
+        {
+            $metadataWriter = new PNGWriter($copy, $redaction->licence); //creating the writer, also writes the metadata - may want to searate these two processes later
+        }
+        ChromePhp::log("updated the file!");
         //metadata written, now add it to the zip
         //open the zip archive ready to write
         //create a zip object

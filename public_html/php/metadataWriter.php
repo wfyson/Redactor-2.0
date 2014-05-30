@@ -78,4 +78,15 @@ class ExifWriter{
     }
 }
 
+class PNGWriter{
+    
+    public function __construct($image, $value){               
+        
+        //create PNG reader first
+        $pngReader = new PNGReader($image);
+        $pngReader->write_metadata("Software", "mysoftware");
+                
+    }
+}
+
 ?>

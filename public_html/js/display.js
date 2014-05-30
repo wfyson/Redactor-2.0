@@ -451,6 +451,7 @@ function clearView(){
 
 //ask the server to commit the redactions and present a link
 function commitRedactions(){
+    console.log("commitng redactions!!");
     $.getJSON("./php/scripts/commit.php?callback=?",
     function(res) {
         $overview = $('#overview');
@@ -462,5 +463,5 @@ function commitRedactions(){
         $link.append("Click to download...");
 
         $overview.append($link);
-    });
+    }).error(function(error){console.log(error);});
 }
