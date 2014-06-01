@@ -72,10 +72,7 @@ class PNGReader implements MetadataReader{
     private $_fp;
     private $_chunks;
     
-    public function __construct($url){        
-     
-        ChromePhp::log($url);
-        
+    public function __construct($url){             
         $this->url = $url;
         
         $this->_fp = fopen($url, 'r+');
@@ -110,7 +107,6 @@ class PNGReader implements MetadataReader{
             //Read next chunk header
             $chunkHeader = fread($this->_fp, 8);
         } 
-        ChromePhp::log($this->_chunks);
     }
     
 
@@ -142,13 +138,15 @@ class PNGReader implements MetadataReader{
         $textChunks = $this->_chunks['tEXt'];        
         if ($textChunks !== null) //metadata chunks already exist - grab everything after it, make changes, append everything on the end
         {
+            $fieldPresent = false;
             foreach($textChunks as $chunk)
             {
                 fseek($this->_fp, $chunk['offset'], SEEK_SET);
                 $entry = fread($this->_fp, $chunk['size']);
-                if (strpos($entry, $pngField === 0))
+                $strpos = strpos($entry, $pngField);           
+                if ($strpos === 0)
                 {
-                    ChromePhp::log("same field found");
+                    $fieldPresent = true;
                     
                     //grab everything that comes after this
                     //get start position
@@ -177,7 +175,43 @@ class PNGReader implements MetadataReader{
                     
                     //finished
                     fclose($this->_fp); 
-                }                
+                    
+                    break;
+                }
+            }
+            if(!($fieldPresent))
+            {
+                //this field has yet to be found so we want to add it alongside existing tEXt chunks
+                //get the position of the last tEXt chunk
+                $chunk = end($textChunks);
+                
+                //grab everything that comes after this
+                //get start position
+                fseek($this->_fp, $chunk['offset']+$chunk['size']+4, SEEK_SET);
+                $backupStart = ftell($this->_fp);
+                
+                //get end position
+                fseek($this->_fp, 0, SEEK_END);
+                $backupSize = ftell($this->_fp) - $backupStart;
+
+                //back to start and read everything up to the end
+                fseek($this->_fp, $backupStart, SEEK_SET);
+                $backup = fread($this->_fp, $backupSize);
+                
+                //now add a new the chunk
+                fseek($this->_fp, $backupStart, SEEK_SET);
+                $pos = ftell($this->_fp);
+                $this->write_meta_chunk($pos, $content);
+                
+                //and now append everything back on the end
+                fwrite($this->_fp, $backup);
+
+                //and truncate to actual length
+                $end = ftell($this->_fp);
+                ftruncate($this->_fp, $end);
+
+                //finished
+                fclose($this->_fp);
             }
         }
         else    //there are no metadata chunks so add some
@@ -209,19 +243,8 @@ class PNGReader implements MetadataReader{
             
             //finished
             fclose($this->_fp);  
-        }
-        
-        
-        
-        /*
-         * get each of the chunks for tEXt
-         * each chunk represents one key/value pair
-         * if a record for this key already exists - change it
-         * if not - create it
-         * the file after those chunks will need rewrting
-         * if tEXt doesn't exist full stop create it at the end of the file        
-         */
-    }
+        }        
+    }    
     
     public function write_meta_chunk($beginning, $content)
     {
@@ -242,138 +265,6 @@ class PNGReader implements MetadataReader{
         fwrite($this->_fp, $crc, 4);
     }
     
-    
-    public function write_chunks($text){      
-                        
-        //create the chunk header
-        ChromePhp::log("writing the chunks!!");
-        $size = strlen($text);
-        $type = 'tEXt';        
-        $metaHeader = @pack('Na4', $size, $type);                
-        
-        if ($this->_chunks[$type] === null)
-        {
-            //this chunk does not yet exist so we want to add it to the end of the file      
-            //go to the end of the file
-            fseek($this->_fp, 0, SEEK_END);
-            $pos = ftell($this->_fp);
-            
-            //write the header            
-            $result = fwrite($this->_fp, $header, 8);           
-            
-            //write the body
-            $result = fwrite($this->_fp, $text, $size);
-            
-            //write the crc - based on the type bytes and content
-            //first go to the latter 4 bytes of the header
-            fseek($this->_fp, $pos, SEEK_SET);
-            //read until the latter 4 header bytes and end of the content
-            $crcString = fread($this->_fp, 4 + $size);                 
-            $crc = crc32($crcString);
-            //write the crc
-            fwrite($this->_fp, $crc, 4);
-            
-            $closed = fclose($this->_fp);            
-            ChromePhp::log("file closed..." . $closed);
-        }        
-        else
-        {   
-            //need to modify the existing chunk and update everything that comes after it
-            //to do this we will rewrite all chunks from scratch
-            //so first read the contents of the file
-            $fileData = array();
-            //cycle through all the chunks stored for each type
-            foreach($this->_chunks as $key => $typeChunks)
-            {
-                //create an array to store this type's chunk's data
-                $fileData[$key] = array();
-                foreach($typeChunks as $chunk)
-                {
-                    if ($chunk['size'] > 0) {
-                        fseek($this->_fp, $chunk['offset'], SEEK_SET);
-                        array_push($fileData[$key], fread($this->_fp, $chunk['size']));
-                    }else{
-                        $fileData[$key] = "";
-                    }
-                }
-            }            
-            
-            ChromePhp::log("here are the types recorded");
-            foreach($fileData as $key => $value)
-            {
-                ChromePhp::log($key);            
-            }
-            
-            //loop through all the chunks and rewrite them
-            //first go to the beginning of the chunks
-            $firstChunk = reset($this->_chunks);
-            fseek($this->_fp, $firstChunk[0]['offset']);  
-            
-            //now write each chunk from the beginning
-            foreach ($this->_chunks as $key => $typeChunks)
-            { 
-                $i = 0;
-                foreach($typeChunks as $chunk)
-                {                 
-                    ChromePhp::log("the key this time is..." . $key);
-                    if ($key === $type)
-                    {                    
-                        ChromePhp::log("altering the metadata!!!");
-                        $chunkStart = ftell($this->_fp);
-                        ChromePhp::log("chunk start..." . $chunkStart);
-                        //write the new header and content
-                        fwrite($this->_fp, $metaHeader, 8);
-                        fwrite($this->_fp, $text, strlen($text));
-                    
-                        //write the crc - based on the type bytes and content
-                        //first go to the latter 4 bytes of the header
-                        fseek($this->_fp, $chunkStart+4, SEEK_SET);
-                        //read until the latter 4 header bytes and end of the content
-                        $crcString = fread($this->_fp, 4+$size);                 
-                        $crc = crc32($crcString);
-                        //write the crc
-                        fwrite($this->_fp, $crc, 4); 
-                    }
-                    else
-                    {
-                        //write this chunk as per original
-                        //get the header
-                        $size = $chunk['size'];
-                        $headerType = $key;
-                        $header = @pack('Na4', $size, $headerType);
-                        
-                        $unpacked = @unpack('Nsize/a4type', $header);
-                        ChromePhp::log($unpacked);
-                        
-                        $chunkStart = ftell($this->_fp);
-                        ChromePhp::log("chunk start..." . $chunkStart);
-                        //write the header
-                        fwrite($this->_fp, $header, 8);
-
-                        //write the content
-                        $dataChunks = $fileData[$key];
-                        fwrite($this->_fp, $dataChunks[$i], $size);                        
-
-                        //write the crc
-                        //write the crc - based on the type bytes and content
-                        //first go to the latter 4 bytes of the header
-                        fseek($this->_fp, $chunkStart+4, SEEK_SET);
-                        //read until the latter 4 header bytes and end of the content
-                        $crcString = fread($this->_fp, 4+$size);
-                        $crc = crc32($crcString);
-                        //write the crc
-                        fwrite($this->_fp, $crc, 4);
-                    }
-                    $i++;
-                }
-            }
-            //truncate the file to the brand new length (could be bigger or smaller depending on the edit
-            //$end = ftell($this->_fp);
-            //ftruncate($this->_fp , $end);
-            fclose($this->_fp);
-        }
-    }   
-    
     public function readField($field) {
         //first convert passed field in to PNG format
         $pngField = null;
@@ -382,7 +273,7 @@ class PNGReader implements MetadataReader{
                 $pngField = "Copyright";
                 break;
             case "artist":
-                $pngField = "Software";
+                $pngField = "Author";
                 break;
         }
 

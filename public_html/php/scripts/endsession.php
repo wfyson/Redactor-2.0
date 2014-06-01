@@ -1,13 +1,17 @@
 <?php
 
+include '../debug/ChromePhp.php';
+
 session_start();
 
-//$files = glob("../../sessions/*");
+$id = (string)session_id();
 
-//foreach($files as $file){ // iterate files
-  //  if(is_file($file))
-    //    unlink($file); // delete file
-//}
+$files = scandir("../../sessions/");
+
+foreach($files as $file){ // iterate files
+    if ((strpos($file, "images") !== FALSE) && (strpos($file, $id) !== FALSE))
+        unlink('../../sessions/' . $file);
+}
 
 session_destroy();
 ?>

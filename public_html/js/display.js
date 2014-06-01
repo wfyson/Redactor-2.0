@@ -248,9 +248,11 @@ function newImage(image, i, total){
 function displayImageEntry(image){
     
     //background
+    console.log(image.copyright);
     var copyright = ["CC0", "CC BY", "CC BY-SA", "CC BY-ND", "CC BY-NC",
-        "CC BY-NC-SA", "CC BY-NC-ND"];        
-    if ($.inArray(image.copyright, copyright)){
+        "CC BY-NC-SA", "CC BY-NC-ND"];      
+    console.log($.inArray(image.copyright, copyright));
+    if ($.inArray(image.copyright, copyright) === -1){
         $imageBox.addClass('alert alert-danger');
     }else{
         $imageBox.addClass('alert alert-success');
