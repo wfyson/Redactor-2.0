@@ -133,6 +133,10 @@
                 
                 $('#file-btn').click(function(){
                     $('#file-error').fadeOut(function(){
+                        
+                        //reset any progress bar progress
+                        $('#upload-progress .progress-bar').css('width', '0%');
+                        
                         $('#file-upload').show();
                     });                    
                 });

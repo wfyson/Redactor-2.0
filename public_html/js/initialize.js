@@ -165,7 +165,7 @@ function handleResult(document, redactions){
 function fileUploadError(strong, error)
 {
     //remove previous error
-    $('#file-alert').empty();
+    $('#file-alert').empty();        
     
     $strong = $('<strong></strong>');
     $strong.append(strong);
