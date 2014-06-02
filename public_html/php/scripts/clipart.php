@@ -27,13 +27,15 @@ foreach ($params as $k => $v){
  */
 $url = "http://openclipart.org/api/search/?".implode('&', $encoded_params);
 
+ChromePhp::log($url);
+
 $rsp = file_get_contents($url);
 
 $json = array();
 
 //populate json with information not available from the API call
 $json["next"] = true;        
-$json["page"] = $_GET['page'];    
+$json["page"] = intval($_GET['page']);    
 $json["total"] = null;
 
 //read the return xml and send to client as JSON

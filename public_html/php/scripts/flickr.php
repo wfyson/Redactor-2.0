@@ -47,7 +47,7 @@ $params = array(
         'tag_mode'      => 'all',
         'license'       => $licence,
         'sort'          => 'relevance',
-        'per_page'      => '8', //$_POST['perpage']
+        'per_page'      => '12', //$_POST['perpage']
         'page'          => $_GET['page'],
 	'format'	=> 'php_serial',
 );
@@ -77,11 +77,8 @@ if ($rsp_obj['stat'] == 'ok'){
     
         $page = $rsp_obj[photos][page];
         $total = intval($rsp_obj[photos][total]);
-        if ($page * 8 < $total){            
-            $json["next"] = true;
-        }
         
-        $json["page"] = $page;
+        $json["page"] = $page;        
         $json["total"] = $total;
     
         $json["results"] = array();
@@ -159,6 +156,16 @@ if ($rsp_obj['stat'] == 'ok'){
             $jsonPhoto["licence"] = $licenceStr;
             
             array_push($json["results"], $jsonPhoto);            
+        }
+        
+        //see if there is a new page to display
+        if (count($photos) < 8)
+        {
+            $json["next"] = false;
+        }
+        else
+        {
+            $json["next"] = true;
         }
 
 }else{
