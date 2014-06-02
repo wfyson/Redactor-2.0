@@ -378,6 +378,12 @@ body{
     display: none;
 }
 
+.image-sidebar #search-error{
+    margin-left: 15px;
+    display: inline;
+    font-size: 10px;
+}
+
 .image-sidebar .sidebar-help{
     float:right;
     margin-top: 5px;    
@@ -385,6 +391,10 @@ body{
 
 .image-sidebar .tooltip{
     position: fixed;
+}
+
+.img-view{
+    margin-bottom: 20px;
 }
 
 .img-view img{

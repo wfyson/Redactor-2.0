@@ -76,8 +76,7 @@
                 </button>
                 
                 <div id='file-alert' class="alert alert-danger">
-                    <strong>Invalid File!</strong>
-                    Unfortunately the redactor doesn't support files of that type. Please select either a .docx or .pptx
+                    
                 </div>
 
             </div>

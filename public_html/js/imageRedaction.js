@@ -238,12 +238,28 @@ function setupSearch(image){
        imageSearch("google", 1);
     });
     
+    $clipart = $('<li></li>');
+    $clipartLink = $('<a></a>');
+    $clipartLink.attr('href', '#');
+    $clipartLink.append("Openclipart");
+    $clipart.append($clipartLink);
+    $options.append($clipart);
+    
+    $clipartLink.click(function(){
+       imageSearch("clipart", 1);
+    });
+    
     $group.append($btn);
     $group.append($options);
     
     $loading = $('<img></img>');
     $loading.attr('id', 'loading');
     $loading.attr('src', 'img/loading.gif');
+
+    $error = $('<div></div>');
+    $error.addClass('alert alert-danger');
+    $error.attr('id', 'search-error');
+    $error.hide(); //initially invisible
 
     $search.append($searchTitle);
     $search.append($searchForm);
@@ -252,7 +268,7 @@ function setupSearch(image){
     
     $submit = $('<div></div>');
     $submit.addClass('submit');
-    $submit.append($group).append($loading);   
+    $submit.append($group).append($loading).append($error);   
     $search.append($submit);
     
     return $search;
@@ -367,10 +383,12 @@ function imageSearch(engine, page){
     if (tags === ""){
         console.log("argghh");
         $('#search-form').addClass("has-error");
-    }else{
-    
+    }else{    
         //show loading icon
         $('#loading').show();
+        
+        //hide error
+        $('#search-error').hide();
         
         //remove error class if present
         $('#search-form').removeClass("has-error");
@@ -384,6 +402,9 @@ function imageSearch(engine, page){
             case "google":
                 url = './php/scripts/google.php?callback=?';
                 break;
+            case "clipart":
+                url = './php/scripts/clipart.php?callback=?';
+                break;
         }
         
         var commercial = $('#commercial-check').is(':checked');
@@ -391,8 +412,15 @@ function imageSearch(engine, page){
 
         //ping search request off to the server
         $.getJSON(url, {tags: tags, com: commercial, derv: derivative, page: page},
-        function(res) {
-            displaySearchResults(res.results, res.page, res.total, res.next, engine);
+        function(res) {    
+            console.log("here are the results!!!");
+            console.log(res);
+            if (res.fail){
+                console.log("bugger me");
+                displaySearchError("Search failed. Please try again.");
+            }else{
+                displaySearchResults(res.results, res.page, res.total, res.next, engine);
+            }
         });
     }
 }
@@ -400,108 +428,106 @@ function imageSearch(engine, page){
 //displays results from a replace image search
 function displaySearchResults(results, page, total, next, engine){
     
-    //hide the loading icon
+    console.log("page..." + page);
+    console.log("type..." + typeof page);
+    
+    //hide the loading icon and error
+    $('#loading').hide();
+    $('#search-error').hide();
+    
+    //only show new results if there any
+    if (results.length > 0){   
+    
+        $view = clearView();
+        $view.addClass('img-view');
+
+        //loop throught he images adding four to a row at a time
+        for(var i = 0; i < results.length; i++){
+            if (i%4 === 0){
+                //start a new row
+                $row = $('<div></div>');
+                $row.addClass('image-row');
+                $view.append($row);
+            }
+            result = results[i];
+            $image = $('<div></div>');
+            $image.addClass('search-prev');
+            $img = $('<img></img>');
+            $img.attr('src', result.sizes.Small);
+            $image.click({param1: result}, function(event) {
+                selectNewImage(event.data.param1);
+            });
+            $image.append($img);
+            $row.append($image);   
+        }
+    
+        //and now some controls
+        $controlRow = $('<div></div>');
+        $controlRow.addClass('control-row');
+
+        //previous button
+        $prevBtn = $('<button></button>');
+        $prevBtn.addClass('btn btn-default prev');
+        $prevBtn.append("Previous");
+    
+        if (page === 1) {
+            $prevBtn.addClass('disabled');
+        }
+
+        $prevBtn.click(function() {
+            page = page - 1;
+            imageSearch(engine, page);
+        });
+    
+        //next button
+        $nextBtn = $('<button></button>');
+        $nextBtn.addClass('btn btn-default next');
+        $nextBtn.append("Next");
+
+        if (!next) {
+            $nextBtn.addClass('disabled');
+        }
+
+        $nextBtn.click(function() {
+            page = page + 1;
+            imageSearch(engine, page);
+        });
+    
+        $controlRow.append($prevBtn).append($nextBtn);
+    
+        //show progress through total results if info available   
+        console.log("page..." + page);
+        console.log("no results...." + results.length);
+        var start = ((page - 1) * results.length) + 1;
+        var end = start + (results.length-1);
+        var resultsStr = "Images " + start + " - " + end;
+            
+        if (total !== null){
+            resultsStr = resultsStr + " of " + total + ".";
+        }
+           
+        $total = $('<div></div>');
+        $total.addClass('results-progress');
+        $total.append(resultsStr);
+        $controlRow.append($total);
+                
+        $view.append($controlRow);        
+    }else{
+        displaySearchError("No images found.");
+    }
+}
+
+//display search realted errors
+function displaySearchError(error){    
+    
+    //ensure loading is hidden
     $('#loading').hide();
     
-    $view = clearView();
-    $view.addClass('img-view');
+    //empty previous error message
+    $('#search-error').empty();
     
-    $row = $('<div></div>');
-    $row.addClass('image-row');
-    //go through the first row of images
-    for(var i = 0; i < 4; i++){
-       
-        if (i < results.length){
-            
-            var result = results[i];
-            
-            $image = $('<div></div>');
-            $image.addClass('search-prev');
-            
-            $img = $('<img></img>');                 
-            $img.attr('src', result.sizes.Small);
-            
-            $image.click({param1: result}, function(event) {
-                selectNewImage(event.data.param1);
-            });
-            
-            $image.append($img);
-            $row.append($image);                        
-        }                        
-    }
-    
-    $view.append($row);
-    
-    //and now the second row
-    $secondRow = $('<div></div>');
-    $secondRow.addClass('image-row');
-    for(var i = 4; i < 8; i++){
-       
-        if (i < results.length){
-            
-            var result = results[i];
-            
-            $image = $('<div></div>');
-            $image.addClass('search-prev');
-            
-            $img = $('<img></img>');            
-            
-            $img.attr('src', result.sizes.Small);
-            
-            $image.click({param1: result}, function(event) {
-                selectNewImage(event.data.param1);
-            });
-            
-            $image.append($img);
-            $secondRow.append($image);                        
-        }                        
-    }
-    
-    $view.append($secondRow);
-    
-    //and now some controls
-    $controlRow = $('<div></div>');
-    $controlRow.addClass('control-row');
-    
-    //previous button
-    $prevBtn = $('<button></button>');
-    $prevBtn.addClass('btn btn-default prev');
-    $prevBtn.append("Previous");
-    
-    if(page === 1){
-        $prevBtn.addClass('disabled');
-    }
-    
-    $prevBtn.click(function(){
-        page = page - 1;
-        imageSearch(engine, page);
-    });
-    
-    //next button
-    $nextBtn = $('<button></button>');
-    $nextBtn.addClass('btn btn-default next');
-    $nextBtn.append("Next");
-    
-    if(!next){
-        $nextBtn.addClass('disabled');
-    }
-    console.log(page);
-    $nextBtn.click(function(){
-        page = page + 1;
-        console.log(page);
-        imageSearch(engine, page);
-    });
-    
-    //progress through results
-    var start = ((page-1) * 8) + 1;
-    var end = start + 7;
-    var resultsStr = start +  " - " + end + " of " + total + ".";
-    $total = $('<div></div>');
-    $total.addClass('results-progress');
-    $total.append(resultsStr);
-    
-    $controlRow.append($prevBtn).append($nextBtn).append($total);
-    $view.append($controlRow);
+    $('#search-error').show();
+    $('#search-error').append(error);
 }
 
 //a replacement image has been selected

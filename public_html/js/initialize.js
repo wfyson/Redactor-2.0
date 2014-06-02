@@ -83,9 +83,9 @@ function sendRequest(blob, fname) {
         }
     } else {
         $('#file-upload').fadeOut("slow", function(){
-            $('#file-error').fadeIn("slow");
+            fileUploadError("Invalid File! ", 
+            "Unfortunately the redactor doesn't support files of that type. Please select either a .docx or .pptx");        
         });
-        
     }
 }
 
@@ -102,7 +102,7 @@ function uploadFile(blob, index, start, end, fname) {
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
             if (xhr.responseText) {
-                console.log(xhr.responseText);
+                console.log(xhr);
             }
 
             slices--;
@@ -146,8 +146,12 @@ function mergeFile(fname) {
     $.getJSON("./php/scripts/merge.php?callback=?", {id: id, name: fname, index: slices2},
     function(res) {        
         handleResult(res[0], res[1]);
-    }).error(function(error){console.log(error);});
-
+    }).error(function(error){        
+        $('#upload-progress').fadeOut("slow", function(){
+            fileUploadError("Redactor Error! ", 
+            "Unfortunately the redactor is having problems using this file.");
+        });        
+    });
 }
 
 //deals with the result of any of the php uploading processes
@@ -156,4 +160,17 @@ function handleResult(document, redactions){
     $('#main').data("paraRedactions", redactions.paraRedactions);
     $('#main').data("imageRedactions", redactions.imageRedactions);
     initDisplay();
+}
+
+function fileUploadError(strong, error)
+{
+    //remove previous error
+    $('#file-alert').empty();
+    
+    $strong = $('<strong></strong>');
+    $strong.append(strong);
+    $('#file-alert').append($strong).append(error);
+    
+    $('#file-error').show();
+
 }
