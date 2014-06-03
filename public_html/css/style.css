@@ -222,6 +222,7 @@ body{
 .img-preview img{
     max-height: 150px;
     max-width: 200px;
+    display: block;
 }
 
 .meta{

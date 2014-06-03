@@ -54,11 +54,13 @@ function updateGUI(redaction){
     }else{
         if(redaction.type === "replace"){
             //overview
+            console.log("new title!!!");
+            console.log(redaction.newTitle);
             var heading = 'Replace with "' + redaction.newTitle + '"';
             updateImageOverview(heading, true);           
             
             //view
-            displayNewImage(redaction.newimage, redaction.newTitle, redaction.ownerUrl, redaction.imageUrl, redaction.licence);            
+            displayNewImage(redaction.newimage, redaction.newTitle, redaction.owner, redaction.ownerUrl, redaction.imageUrl, redaction.licence);            
         }
         
         if(redaction.type === "licence"){
@@ -532,7 +534,6 @@ function displaySearchError(error){
 
 //a replacement image has been selected
 function selectNewImage(image){
-    console.log(image);
     
     //get the appropriate link for the new image
     var newLink = getLargestSize(image);
@@ -548,10 +549,13 @@ function selectNewImage(image){
     var replaceRedaction = new ReplaceRedaction(oldImagePath, newLink, image.licence, caption, image.title, image.owner, image.ownerUrl, image.url);    
     $view.data('redaction', replaceRedaction);
     
+    console.log(replaceRedaction);
+    
     //update the GUI
     updateGUI(replaceRedaction);    
 }
-function displayNewImage(newLink, title, ownerUrl, imageUrl, licence){
+
+function displayNewImage(newLink, title, owner, ownerUrl, imageUrl, licence){
     
     //setup the view
     $view = clearView();    
@@ -575,11 +579,16 @@ function displayNewImage(newLink, title, ownerUrl, imageUrl, licence){
     $owner = $('<div></div>');
     $ownerLabel = $('<b></b>');
     $ownerLabel.append('Owner: ');
-    $ownerValue = $('<a></a>');
-    $ownerValue.attr('href', ownerUrl);
-    $ownerValue.addClass('external');
-    $ownerValue.attr('target', '_blank');
-    $ownerValue.append(ownerUrl);
+    
+    if (ownerUrl !== undefined){    
+        $ownerValue = $('<a></a>');
+        $ownerValue.attr('href', ownerUrl);
+        $ownerValue.addClass('external');
+        $ownerValue.attr('target', '_blank');
+        $ownerValue.append(ownerUrl);
+    }else{
+        $ownerValue = owner;
+    }
     $owner.append($ownerLabel).append($ownerValue);
     
     $link = $('<div></div>');

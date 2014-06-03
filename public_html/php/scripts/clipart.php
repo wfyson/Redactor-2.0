@@ -51,10 +51,10 @@ foreach($items as $item){
     $jsonSizes["Large"] = (string)$url[0];
     $jsonPhoto["sizes"] = $jsonSizes;
     
-    //package up everything to do with a photo    
-    $jsonPhoto["title"] = $item->title;
-    $jsonPhoto["desc"] = $item->description;
-    $jsonPhoto["url"] = $item->url;
+    //package up everything to do with a photo  
+    $jsonPhoto["title"] = (string)$item->title;
+    $jsonPhoto["desc"] = (string)$item->description;
+    $jsonPhoto["url"] = (string)$item->link;
         
     $creator = $item[0]->xpath('dc:creator');    
     $jsonPhoto["owner"] = (string)$creator[0];
