@@ -45,10 +45,20 @@ $json["results"] = array();
 foreach($items as $item){
     $jsonPhoto = array();
 
-    $url = $item[0]->xpath('enclosure/@url');    
+    $thumbnail = $item[0]->xpath('media:thumbnail/@url');    
+    $content = $item[0]->xpath('content:encoded');
+    $cdata = $content[0];
+    
+    $imageStartPos = strpos($cdata, '<img src="');
+    $imageEndPos = strpos($cdata, '/>') + 2;
+    $imageTag = substr($cdata, $imageStartPos, ($imageEndPos - $imageStartPos));
+    
+    $imageXml = simplexml_load_string($imageTag);
+    $url = (string)$imageXml->attributes()->src;
+      
     $jsonSizes = array();
-    $jsonSizes["Small"] = (string)$url[0];
-    $jsonSizes["Large"] = (string)$url[0];
+    $jsonSizes["Small"] = $url;
+    $jsonSizes["Large"] = $url;
     $jsonPhoto["sizes"] = $jsonSizes;
     
     //package up everything to do with a photo  

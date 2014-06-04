@@ -150,7 +150,7 @@ function mergeFile(fname) {
         $('#upload-progress').fadeOut("slow", function(){
             fileUploadError("Redactor Error! ", 
             "Unfortunately the redactor is having problems using this file.");
-        });        
+        });
     });
 }
 
